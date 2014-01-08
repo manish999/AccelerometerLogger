@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@drawable/background"
+    android:fillViewport="true"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:scrollbars="vertical" >
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center_horizontal"
+        android:orientation="vertical" >
+
+        <Button
+            android:id="@+id/button1"
+            android:layout_width="fill_parent"
+            android:layout_height="35.0dip"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="5.0dip"
+            android:background="@drawable/buttondrawable"
+            android:paddingBottom="0.0dip"
+            android:text="Acceleration" />
+
+        <Button
+            android:id="@+id/button2"
+            android:layout_width="200.0dip"
+            android:layout_height="35.0dip"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="5.0dip"
+            android:background="@drawable/buttondrawable"
+            android:paddingBottom="0.0dip"
+            android:text="Linear Acceleration" />
+
+        <Button
+            android:id="@+id/button3"
+            android:layout_width="fill_parent"
+            android:layout_height="35.0dip"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="5.0dip"
+            android:background="@drawable/buttondrawable"
+            android:paddingBottom="0.0dip"
+            android:text="Orientation" />
+
+        <Button
+            android:id="@+id/button4"
+            android:layout_width="fill_parent"
+            android:layout_height="35.0dip"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="5.0dip"
+            android:background="@drawable/buttondrawable"
+            android:paddingBottom="0.0dip"
+            android:text="Gyroscope" />
+
+        <Button
+            android:id="@+id/button5"
+            android:layout_width="fill_parent"
+            android:layout_height="35.0dip"
+            android:layout_marginBottom="5.0dip"
+            android:background="@drawable/buttondrawable"
+            android:paddingBottom="0.0dip"
+            android:text="Magnetic Field" />
+
+        <Button
+            android:id="@+id/button6"
+            android:layout_width="fill_parent"
+            android:layout_height="35.0dip"
+            android:layout_marginBottom="5.0dip"
+            android:background="@drawable/buttondrawable"
+            android:paddingBottom="0.0dip"
+            android:text="Light" />
+
+        <Button
+            android:id="@+id/button7"
+            android:layout_width="fill_parent"
+            android:layout_height="35.0dip"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="5.0dip"
+            android:background="@drawable/buttondrawable"
+            android:paddingBottom="0.0dip"
+            android:text="Pressure" />
+
+        <Button
+            android:id="@+id/button8"
+            android:layout_width="fill_parent"
+            android:layout_height="35.0dip"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="5.0dip"
+            android:background="@drawable/buttondrawable"
+            android:paddingBottom="0.0dip"
+            android:text="Temperature" />
+
+        <Button
+            android:id="@+id/button9"
+            android:layout_width="fill_parent"
+            android:layout_height="35.0dip"
+            android:layout_marginBottom="5.0dip"
+            android:background="@drawable/buttondrawable"
+            android:paddingBottom="0.0dip"
+            android:text="Proximity" />
+
+        <Button
+            android:id="@+id/button10"
+            android:layout_width="fill_parent"
+            android:layout_height="35.0dip"
+            android:layout_marginBottom="15.0dip"
+            android:background="@drawable/buttondrawable"
+            android:paddingBottom="0.0dip"
+            android:text="Relative Humidity" />
+    </LinearLayout>
+
+</ScrollView>

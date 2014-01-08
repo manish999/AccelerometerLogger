@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:key="mainscreen" >
+
+    <PreferenceCategory
+        android:key="analyticsdata"
+        android:title="Accelerometer Setting" >
+        <ListPreference
+            android:defaultValue="0"
+            android:entries="@array/date_array"
+            android:entryValues="@array/date_array_values"
+            android:key="period"
+            android:summary="select the sensor speed for the data to be retrieved"
+            android:title="Select Sensor Speed" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="salutation_array">
+        <item>Mr.</item>
+        <item>Mrs.</item>
+        <item>Miss</item>
+    </string-array>
+    <string-array name="salutation_array_value">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+    <string-array name="date_array">
+        <item>Default(1 Htz)</item>
+        <item>Normal</item>
+        <item>UI</item>
+        <item>Game</item>
+        <item>Fastest</item>
+        <!-- <item>Custom</item> -->
+    </string-array>
+    <string-array name="date_array_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <!-- <item>5</item> -->
+    </string-array>
+
+</resources>

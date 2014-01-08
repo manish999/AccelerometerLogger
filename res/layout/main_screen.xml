@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
+
+    <RadioGroup
+        android:id="@+id/toggleGroup"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="10dp"
+        android:orientation="vertical" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal" >
+
+            <ToggleButton
+                android:id="@+id/btn_running"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:checked="true"
+                android:onClick="onToggle"
+                android:textColor="@android:color/black"
+                android:textOff="@string/title_section1"
+                android:textOn="@string/title_section1"
+                android:textSize="14sp" />
+
+            <ToggleButton
+                android:id="@+id/btn_walking"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="onToggle"
+                android:textColor="@android:color/black"
+                android:textOff="@string/title_section2"
+                android:textOn="@string/title_section2"
+                android:textSize="14sp" />
+
+            <ToggleButton
+                android:id="@+id/btn_sitting"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="onToggle"
+                android:textColor="@android:color/black"
+                android:textOff="@string/title_section3"
+                android:textOn="@string/title_section3"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal" >
+
+            <ToggleButton
+                android:id="@+id/btn_sleeping"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:checked="false"
+                android:onClick="onToggle"
+                android:textColor="@android:color/black"
+                android:textOff="@string/title_section4"
+                android:textOn="@string/title_section4"
+                android:textSize="14sp" />
+
+            <ToggleButton
+                android:id="@+id/btn_climb_up"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="onToggle"
+                android:textColor="@android:color/black"
+                android:textOff="@string/title_section5"
+                android:textOn="@string/title_section5"
+                android:textSize="14sp" />
+
+            <ToggleButton
+                android:id="@+id/btn_climb_down"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="onToggle"
+                android:textColor="@android:color/black"
+                android:textOff="@string/title_section6"
+                android:textOn="@string/title_section6"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </RadioGroup>
+
+</LinearLayout>
