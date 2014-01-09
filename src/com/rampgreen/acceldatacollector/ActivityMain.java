@@ -24,11 +24,9 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.android.volley.Request.Method;
-import com.android.volley.RequestQueue;
 import com.android.volley.Response.ErrorListener;
 import com.android.volley.Response.Listener;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.rampgreen.acceldatacollector.csv.Points;
 import com.rampgreen.acceldatacollector.util.AppLog;
 import com.rampgreen.acceldatacollector.util.AppSettings;
@@ -39,7 +37,12 @@ import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Vector;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class ActivityMain extends Activity  implements SensorEventListener, Listener, ErrorListener
 {
@@ -53,6 +56,7 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 	private Button cmdstop;
 	private TextView txtlogtime;
 	private TextView txtsensordata;
+	private String activityType = Constants.ACCEL_ACTIVITY_RUNNING;
 	Date enddate;
 	FileWriter writer;
 	File dir;
@@ -63,15 +67,21 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 	Vector<Double> times = new Vector();
 	DecimalFormat df3 = new DecimalFormat("#0.0000");
 	DecimalFormat df6 = new DecimalFormat("#0.000000");
+	DecimalFormat df0 = new DecimalFormat("#0");
 
 	boolean isFirstRecording = true;
 	boolean isRecording = false;
+	boolean isStartFirstTimeStamp = false;
+	String duration;
 
 	Vector<Float> valuesX = new Vector();
 	Vector<Float> valuesY = new Vector();
 	Vector<Float> valuesZ = new Vector();
+	
+//	final ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
 
 	Vector<Points> csvModelList = new Vector<Points>();
+	private boolean isActive;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -83,8 +93,8 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
-		mSensorManager.registerListener(this, mAccelerometer,
-				SensorManager.SENSOR_DELAY_FASTEST);
+//		mSensorManager.registerListener(this, mAccelerometer,
+//				SensorManager.SENSOR_DELAY_FASTEST);
 		// setting listener
 		((RadioGroup) findViewById(R.id.toggleGroup)).setOnCheckedChangeListener(ToggleListener);
 
@@ -120,33 +130,57 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 		//		}
 
 	}
-
+	int selectedSpeed = 0;
 	@Override
 	protected void onResume()
 	{
 		super.onResume();
 		String sensorSpeedSetting = (String)AppSettings.getPrefernce(this, null, AppSettings.SPEED_SENSOR, "0");
-		int selectedSpeed = Integer.valueOf(sensorSpeedSetting).intValue();
+		selectedSpeed = Integer.valueOf(sensorSpeedSetting).intValue();
 		switch (selectedSpeed) {
 		case 0:
 			mSensorManager.registerListener(this, mAccelerometer,
 					SensorManager.SENSOR_DELAY_NORMAL);
+			
+//			timer.schedule(new TimerTask() {
+//				@Override
+//				public void run() {
+//					activateSensor();
+//				    }
+//				},0,1000);//Update text every second
+			
+//			exec.schedule(new Runnable(){
+//			    @Override
+//			    public void run(){
+//			        activateSensor();
+//			    }
+//			}, 1, TimeUnit.SECONDS);
+			
 			break;
 		case 1:
 			mSensorManager.registerListener(this, mAccelerometer,
 					SensorManager.SENSOR_DELAY_NORMAL);
+//			timer.cancel();
+//			isActive = true;
+//			exec.shutdownNow();
 			break;
 		case 2:
 			mSensorManager.registerListener(this, mAccelerometer,
 					SensorManager.SENSOR_DELAY_UI);
+//			timer.cancel();
+//			isActive = true;
 			break;
 		case 3:
 			mSensorManager.registerListener(this, mAccelerometer,
 					SensorManager.SENSOR_DELAY_GAME);
+//			timer.cancel();
+//			isActive = true;
 			break;
 		case 4:
 			mSensorManager.registerListener(this, mAccelerometer,
 					SensorManager.SENSOR_DELAY_FASTEST);
+//			timer.cancel();
+//			isActive = true;
 			break;
 		case 5:
 
@@ -162,6 +196,9 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 	{
 		super.onPause();
 		mSensorManager.unregisterListener(this, mAccelerometer);
+//		timer.cancel();
+//		isActive = true;
+//		exec.shutdownNow();
 	}
 
 	@Override
@@ -203,7 +240,19 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 				toggleButtonContainer =  (LinearLayout) radioGroup.getChildAt(index);
 				for (int j = 0; j < toggleButtonContainer.getChildCount(); j++) {
 					final ToggleButton view = (ToggleButton) toggleButtonContainer.getChildAt(j);
-					view.setChecked(view.getId() == i);
+					if(view.getId() == i) {
+						view.setChecked(true);	
+					} else {
+						view.setChecked(false);
+					}
+					boolean shouldcheck ;
+					//					if(view.isChecked()) {
+					//						shouldcheck = true;
+					//					} else {
+					shouldcheck = view.getId() == i;
+					//					}
+
+					//					view.setChecked(true);
 				}
 			}
 		}
@@ -211,14 +260,19 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 
 	public void onToggle(View view) {
 		LinearLayout linearLayout = (LinearLayout)view.getParent();
+		((ToggleButton)view).setChecked(true);
 		((RadioGroup)linearLayout.getParent()).check(view.getId());
 		// app specific stuff ..
+		String toggleBtnText = ((ToggleButton)view).getText().toString();
+		AppLog.e(toggleBtnText);
+		activityType = getActivityType(toggleBtnText);
 	}
 
 	private void reset_variables()
 	{
 		csvModelList.clear();
 		pointBuffer.setLength(0);// more faster than insert and allocate new one
+
 		//	    this.valuesX.clear();
 		//	    this.valuesY.clear();
 		//	    this.valuesZ.clear();
@@ -229,26 +283,33 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 		//	    this.valuesZ.add(Float.valueOf(0.0F));
 		//	    this.valuesmag.add(Float.valueOf(0.0F));
 		//	    this.times.add(Double.valueOf(0.0D));
+
 	}
 
+	private long startSystemTime;
 	private void setListener()
 	{
 		this.cmdrecord.setOnClickListener(new View.OnClickListener()
 		{
+			
+
 			@Override
 			public void onClick(View v)
 			{
 				ActivityMain localLoggingActivity;
 				boolean bool2;
+				
 				if (!ActivityMain.this.isRecording)
 				{
 					//					ActivityMain.this.cmdrecord.setBackgroundResource(2130837507);
 					//					ActivityMain.this.cmdrecord.setText("Pause");
 					reset_variables();
+					startSystemTime = System.currentTimeMillis();
 					ActivityMain.this.cmdstop.setEnabled(true);
-					ActivityMain.this.cmdresettime.setEnabled(false);
+					ActivityMain.this.cmdresettime.setEnabled(true);
 					ActivityMain.this.cmdrecord.setEnabled(false);
 					ActivityMain.this.cmdrecord.setBackgroundResource(R.drawable.button_disabled);
+					isStartFirstTimeStamp = true;
 					if (ActivityMain.this.isFirstRecording)
 					{
 						ActivityMain.this.isFirstRecording = false;
@@ -286,16 +347,22 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 					ActivityMain.this.enddate = Calendar.getInstance().getTime();
 				ActivityMain.this.isRecording = false;
 				ActivityMain.this.cmdrecord.setEnabled(true);
-				ActivityMain.this.cmdrecord.setBackgroundResource(R.drawable.button_record);
-				ActivityMain.this.cmdrecord.setText("Record");
+				ActivityMain.this.cmdrecord.setBackgroundResource(R.drawable.button_up);
+				ActivityMain.this.cmdrecord.setText("Start");
 				ActivityMain.this.cmdstop.setEnabled(false);
-				ActivityMain.this.cmdresettime.setEnabled(true);
+				ActivityMain.this.cmdresettime.setEnabled(false);
 				ActivityMain.this.isFirstRecording = true;
+				if (ActivityMain.this.isStartFirstTimeStamp)
+				{
+					ActivityMain.this.isStartFirstTimeStamp = false;
+					//		              ActivityMain.this.writeheaders();
+				}
 				try
 				{ 
 					Vector<Points> list = (Vector<Points>) ActivityMain.this.csvModelList.clone();
 					String id = BeanController.getLoginBean().getId();
-					String logData = sendLoggerData(id, "2", ActivityMain.this.startdate.getTime()+"", ActivityMain.this.enddate.getTime()+"", list);
+
+					String logData = sendLoggerData(id, activityType+"", ActivityMain.this.startdate.getTime()+"", ActivityMain.this.enddate.getTime()+"", list);
 
 
 
@@ -383,6 +450,9 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 			public void onClick(View paramAnonymousView)
 			{
 				ActivityMain.this.reset_variables();
+				ActivityMain.this.startdate = Calendar.getInstance().getTime();
+				ActivityMain.this.enddate = Calendar.getInstance().getTime();
+				ActivityMain.this.isStartFirstTimeStamp = true;
 			}
 		});
 	}
@@ -396,16 +466,86 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 	@Override
 	public void onSensorChanged(SensorEvent sensorEvent)
 	{
-		float x =  sensorEvent.values[0];
-		float y =  sensorEvent.values[1];
-		float z =  sensorEvent.values[2];
+//		if (isActive) {
+//            numSamples++;
+		if(selectedSpeed == 0) {
+            long now = System.currentTimeMillis();
+            if (now >= startSystemTime + 1000) {
+//                samplingRate = numSamples / ((now - startSystemTime) / 1000.0);
+            	startSystemTime = now;
+//                isActive = false;
+//                accelerometerTest.displayRates();
+            	
 
-		// adding the data to the list
-		csvModelList.add(new Points(x,y,z));
+    			float x =  sensorEvent.values[0];
+    			float y =  sensorEvent.values[1];
+    			float z =  sensorEvent.values[2];
+    			long timestamp = sensorEvent.timestamp;
+    			// adding the data to the list
+    			csvModelList.add(new Points(x,y,z));
 
-		pointBuffer.append(df3.format(x) + COMMA + df3.format(y) + COMMA + df3.format(z) + COMMA);
-		long timestamp = sensorEvent.timestamp;
-		this.txtsensordata.setText(Html.fromHtml("<b><font color=\"red\">X axis</font></b> : " + this.df3.format(x) + " m/s<sup>2</sup>" + "<br><b><font color=\"green\">Y axis</font></b> : " + this.df3.format(y) + " m/s<sup>2</sup>" + "<br><b><font color=\"blue\">Z axis</font></b> : " + this.df3.format(z) + " m/s<sup>2</sup>"));
+    			pointBuffer.append(df3.format(x) + COMMA + df3.format(y) + COMMA + df3.format(z) + COMMA);
+    			if(isStartFirstTimeStamp) {
+    				this.starttime = Double.valueOf(sensorEvent.timestamp);
+    				isStartFirstTimeStamp = false;
+    			}
+    			if(isRecording) {
+    				double d = (sensorEvent.timestamp - this.starttime.doubleValue()) / 1000000000.0D;
+    				duration = df0.format(d)+"";
+    				this.txtlogtime.setText("Time : " + this.df3.format(d) + "sec");
+    			}
+    			this.txtsensordata.setText(Html.fromHtml("<b><font color=\"red\">X axis</font></b> : " + this.df3.format(x) + " m/s<sup>2</sup>" + "<br><b><font color=\"green\">Y axis</font></b> : " + this.df3.format(y) + " m/s<sup>2</sup>" + "<br><b><font color=\"blue\">Z axis</font></b> : " + this.df3.format(z) + " m/s<sup>2</sup>"));
+//    			if(timer.isTerminated()) {
+//    				isActive = true;
+    			
+            }
+        } else {
+        	float x =  sensorEvent.values[0];
+			float y =  sensorEvent.values[1];
+			float z =  sensorEvent.values[2];
+			long timestamp = sensorEvent.timestamp;
+			// adding the data to the list
+			csvModelList.add(new Points(x,y,z));
+
+			pointBuffer.append(df3.format(x) + COMMA + df3.format(y) + COMMA + df3.format(z) + COMMA);
+			if(isStartFirstTimeStamp) {
+				this.starttime = Double.valueOf(sensorEvent.timestamp);
+				isStartFirstTimeStamp = false;
+			}
+			if(isRecording) {
+				double d = (sensorEvent.timestamp - this.starttime.doubleValue()) / 1000000000.0D;
+				duration =d+"";
+				this.txtlogtime.setText("Time : " + this.df3.format(d) + "sec");
+			}
+			this.txtsensordata.setText(Html.fromHtml("<b><font color=\"red\">X axis</font></b> : " + this.df3.format(x) + " m/s<sup>2</sup>" + "<br><b><font color=\"green\">Y axis</font></b> : " + this.df3.format(y) + " m/s<sup>2</sup>" + "<br><b><font color=\"blue\">Z axis</font></b> : " + this.df3.format(z) + " m/s<sup>2</sup>"));
+        }
+		
+		
+//		if (isActive) {
+//			float x =  sensorEvent.values[0];
+//			float y =  sensorEvent.values[1];
+//			float z =  sensorEvent.values[2];
+//			long timestamp = sensorEvent.timestamp;
+//			// adding the data to the list
+//			csvModelList.add(new Points(x,y,z));
+//
+//			pointBuffer.append(df3.format(x) + COMMA + df3.format(y) + COMMA + df3.format(z) + COMMA);
+//			if(isStartFirstTimeStamp) {
+//				this.starttime = Double.valueOf(sensorEvent.timestamp);
+//				isStartFirstTimeStamp = false;
+//			}
+//			if(isRecording) {
+//				double d = (sensorEvent.timestamp - this.starttime.doubleValue()) / 1000000000.0D;
+//				duration =d+"";
+//				this.txtlogtime.setText("Time : " + this.df3.format(d) + "sec");
+//			}
+//			this.txtsensordata.setText(Html.fromHtml("<b><font color=\"red\">X axis</font></b> : " + this.df3.format(x) + " m/s<sup>2</sup>" + "<br><b><font color=\"green\">Y axis</font></b> : " + this.df3.format(y) + " m/s<sup>2</sup>" + "<br><b><font color=\"blue\">Z axis</font></b> : " + this.df3.format(z) + " m/s<sup>2</sup>"));
+////			if(timer.isTerminated()) {
+//				isActive = true;
+//			} else {
+//				isActive = false;
+//			}
+//		}
 	}
 
 	private String sendLoggerData(String userID, String activityType, String startTime, String endTime, Vector<Points> pointsList) throws JSONException 
@@ -418,7 +558,7 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 		//			        JSONObject jsonAdd = new JSONObject(); // we need another object to store the address
 		jsonObj.put("start_time_stamp", startTime);
 		jsonObj.put("end_time_stamp", endTime);
-		jsonObj.put("duration", pointsList.size());
+		jsonObj.put("duration", duration);
 		StringBuilder stringBuilder = new StringBuilder(pointBuffer);
 		//		for (Points points : pointsList)
 		//		{
@@ -435,7 +575,7 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 		CustomRequest customRequest = new CustomRequest(Method.POST,
 				Constants.URL_WEB_SERVICE, loginParam,
 				ActivityMain.this, ActivityMain.this);
-//		showLoadingBar();
+		//		showLoadingBar();
 		queue.add(customRequest);
 		// In this case we need a json array to hold the java list
 		/*******************************************************************/
@@ -461,15 +601,15 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 		//		jsonObj.put("points", jsonArr);
 
 		// get network queue and add request to the queue
-//		RequestQueue queue = MyVolley.getVollyRequestQueue();
-//		JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Method.POST, Constants.URL_WEB_SERVICE, jsonObj, this, this);
+		//		RequestQueue queue = MyVolley.getVollyRequestQueue();
+		//		JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Method.POST, Constants.URL_WEB_SERVICE, jsonObj, this, this);
 		//		Map<String, String> loginParam = QueryHelper.createSensorDataQuery(userID,activityType, startTime, endTime, pointsList);
 		//		StringRequest stringRequest = new StringRequest(Method.POST, Constants.URL_WEB_SERVICE, ActivityMain.this, (ErrorListener) ActivityMain.this);
 		//		CustomRequest customRequest = new CustomRequest(Method.POST,
 		//				Constants.URL_WEB_SERVICE, loginParam,
 		//				LoginActivity.this, LoginActivity.this);
 
-//		queue.add(jsonObjectRequest);
+		//		queue.add(jsonObjectRequest);
 
 		Log.e("JSON REQUEST String********* ", jsonObj.toString()+"**********");
 		return jsonObj.toString();
@@ -495,6 +635,55 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 		AppLog.e("Volly error"+error.getMessage());
 	}
 
+	private String getActivityType(String activityType) {
+		AppLog.e(activityType);
+		String[] arrayOfString = getResources().getStringArray(R.array.date_array);
+		if(activityType.equalsIgnoreCase("Running")) {
+			return Constants.ACCEL_ACTIVITY_RUNNING;
+		} else if(activityType.equalsIgnoreCase("Walking")) {
+			return Constants.ACCEL_ACTIVITY_WALKING;
+		} else if(activityType.equalsIgnoreCase("Sitting")) {
+			return Constants.ACCEL_ACTIVITY_SITTING;
+		} else if(activityType.equalsIgnoreCase("Sleeping")) {
+			return Constants.ACCEL_ACTIVITY_SLEEPING;
+		} else if(activityType.equalsIgnoreCase("Climb Up")) {
+			return Constants.ACCEL_ACTIVITY_CLIMBING_UP;
+		} else if(activityType.equalsIgnoreCase("Climb Down")) {
+			return Constants.ACCEL_ACTIVITY_CLIMBING_DOWN;
+		}
+		return Constants.ACCEL_ACTIVITY_RUNNING;
+	}
+	
+	private void activateSensor() {
+		isActive = true;
+	}
+	Timer timer = new Timer();
+	private void updateDisplay() {
+	    
+	    timer.schedule(new TimerTask() {
 
+	@Override
+	public void run() {
+//	         Calendar c = Calendar.getInstance();
+//	         mYear = c.get(Calendar.YEAR);
+//	         mMonth = c.get(Calendar.MONTH);
+//	         mDay = c.get(Calendar.DAY_OF_MONTH);
+//	         mHour = c.get(Calendar.HOUR_OF_DAY);
+//	         mMinute = c.get(Calendar.MINUTE);
+//	         mSecond = c.get(Calendar.SECOND);
+//	        cDateDisplay.setText(new StringBuilder()
+//	            // Month is 0 based so add 1
+//	            .append(mDay).append("/")
+//	            .append(mMonth + 1).append("/")
+//	            .append(mYear).append(" "));
+//	       cTimeDisplay.setText(
+//	             new StringBuilder()
+//	                .append(pad(mHour)).append(":")
+//	                .append(pad(mMinute)).append(":").append(pad(mSecond)));
+		activateSensor();
+	    }
+	},0,1000);//Update text every second
+
+	}
 
 }

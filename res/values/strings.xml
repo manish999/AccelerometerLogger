@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">AccelDataCollector</string>
+    <string name="app_name">Accelerometer Logger</string>
     <string name="action_settings">Settings</string>
     <string name="title_section1">Running</string>
     <string name="title_section2">Walking</string>

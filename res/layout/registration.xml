@@ -3,6 +3,7 @@
     xmlns:orca="http://schemas.android.com/apk/res-auto"
     xmlns:whatever="http://schemas.android.com/apk/res-auto"
     android:layout_width="fill_parent"
+    android:background="@drawable/background"
     android:layout_height="fill_parent" >
 
     <ScrollView

@@ -3,7 +3,8 @@
     xmlns:orca="http://schemas.android.com/apk/res-auto"
     xmlns:whatever="http://schemas.android.com/apk/res-auto"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent" >
+    android:layout_height="fill_parent"
+    android:background="@drawable/background" >
 
     <LinearLayout
         android:id="@+id/login_splash"
@@ -49,8 +50,7 @@
                     android:id="@+id/login_logo1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    />
+                    android:visibility="gone" />
 
                 <ImageView
                     android:id="@+id/login_logo2"
@@ -127,7 +127,8 @@
                     android:paddingLeft="9.0dip"
                     android:paddingRight="9.0dip"
                     android:singleLine="true"
-                     android:text="ishu.chaudhary@rampgreen.net"
+                    android:text="ishu.chaudhary@rampgreen.net"
+                    android:textColor="@android:color/darker_gray"
                     whatever:customRegexp="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$"
                     whatever:emptyErrorString="@string/message_empty"
                     whatever:testErrorString="@string/invalid_email_message"
@@ -150,6 +151,7 @@
                     android:paddingRight="9.0dip"
                     android:singleLine="true"
                     android:text="ishu"
+                    android:textColor="@android:color/darker_gray"
                     whatever:emptyErrorString="@string/message_empty"
                     whatever:testType="nocheck" />
 
