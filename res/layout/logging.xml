@@ -37,73 +37,100 @@
             android:textColor="@android:color/black"
             android:visibility="gone" />
 
-        <TextView
-            android:id="@+id/txtlogheader"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="5.0dip"
-            android:text="Sensor Log"
-            android:textAppearance="?android:textAppearanceMedium"
-            android:textColor="@android:color/black" />
-
-        <TextView
-            android:id="@+id/txtlogdata"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10.0dip"
-            android:text="Sensor data"
-            android:textAppearance="?android:textAppearanceSmall"
-            android:textColor="@android:color/black" />
-
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:gravity="center_horizontal" >
+            android:layout_marginBottom="10.0dip"
+            android:layout_marginTop="10.0dip"
+            android:orientation="horizontal" >
 
-            <Button
-                android:id="@+id/cmdrecord"
-                android:layout_width="140.0dip"
-                android:layout_height="35.0dip"
-                android:layout_marginRight="2.0dip"
-                android:background="@drawable/buttondrawable"
-                android:text="Start"
-                android:textColor="@android:color/black" />
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:weightSum="4" >
 
-            <Button
-                android:id="@+id/cmdstopsave"
-                android:layout_width="140.0dip"
-                android:layout_height="35.0dip"
-                android:layout_marginLeft="2.0dip"
-                android:background="@drawable/buttondrawable"
-                android:text="Stop and Save"
-                android:enabled="false"
-                android:textColor="@android:color/black" />
+                <TextView
+                    android:id="@+id/txtlogheader"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5.0dip"
+                    android:layout_weight="1"
+                    android:text="Sensor Log"
+                    android:textAppearance="?android:textAppearanceMedium"
+                    android:textColor="@android:color/black" />
+
+                <TextView
+                    android:id="@+id/txtlogdata"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10.0dip"
+                    android:layout_weight="2.64"
+                    android:text="Sensor data"
+                    android:textAppearance="?android:textAppearanceSmall"
+                    android:textColor="@android:color/black" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" >
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:gravity="center_vertical"
+                    android:orientation="vertical" >
+
+                    <Button
+                        android:id="@+id/cmdrecord"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4.0dip"
+                        android:layout_marginTop="4.0dip"
+                        android:enabled="true"
+                        android:text="Start"
+                        android:textColor="@android:color/black" />
+
+                    <Button
+                        android:id="@+id/cmdstopsave"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4.0dip"
+                        android:layout_marginTop="4.0dip"
+                        android:enabled="false"
+                        android:text="Stop and Save"
+                        android:textColor="@android:color/black" />
+
+                    <Button
+                        android:id="@+id/cmdresettime"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4.0dip"
+                        android:layout_marginTop="4.0dip"
+                        android:enabled="false"
+                        android:text="Reset Log"
+                        android:textColor="@android:color/black" />
+                </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5.0dip"
+            android:layout_marginTop="10.0dip"
             android:gravity="center_horizontal" >
 
             <TextView
                 android:id="@+id/txtlogtime"
-                android:layout_width="142.0dip"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:text="Time : 00:00"
-                android:textAppearance="?android:textAppearanceSmall"
-                android:textColor="@android:color/black" />
-
-            <Button
-                android:id="@+id/cmdresettime"
-                android:layout_width="140.0dip"
-                android:layout_height="35.0dip"
-                android:layout_marginLeft="2.0dip"
-                android:background="@drawable/buttondrawable"
-                android:text="Reset Log"
-                android:enabled="false"
+                android:textStyle="bold"
+                android:text="0 seconds"
+                android:textAppearance="?android:textAppearanceLarge"
                 android:textColor="@android:color/black" />
         </LinearLayout>
 

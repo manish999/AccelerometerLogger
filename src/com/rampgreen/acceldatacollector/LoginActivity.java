@@ -134,7 +134,6 @@ public class LoginActivity extends BaseActivity
 			AppLog.logString(response.toString());
 			// store deviceID for 
 			AppSettings.setPreference(this, null, AppSettings.USER_ID, login.getId());
-
 			// on success , call Home screen
 			intent = new Intent(getApplicationContext(), ActivityMain.class);
 //			intent.putExtra(Constants.BUNDLE_KEY_USERS, userBean);

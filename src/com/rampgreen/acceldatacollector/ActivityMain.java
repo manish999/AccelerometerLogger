@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
@@ -30,6 +31,7 @@ import com.android.volley.VolleyError;
 import com.rampgreen.acceldatacollector.csv.Points;
 import com.rampgreen.acceldatacollector.util.AppLog;
 import com.rampgreen.acceldatacollector.util.AppSettings;
+import com.rampgreen.acceldatacollector.util.StringUtils;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -82,12 +84,22 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 
 	Vector<Points> csvModelList = new Vector<Points>();
 	private boolean isActive;
+	
+	private ToggleButton btnRunning;
+	private ToggleButton btnWalking;
+	private ToggleButton btnSitting;
+	private ToggleButton btnSleeping;
+	private ToggleButton btnClimbUp;
+	private ToggleButton btnClimbDown;
+	
+	ToggleButton selectedButton;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		setContentView(R.layout.logging);
 
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -103,7 +115,15 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 		this.cmdrecord = ((Button)findViewById(R.id.cmdrecord));
 		this.cmdstop = ((Button)findViewById(R.id.cmdstopsave));
 		this.cmdresettime = ((Button)findViewById(R.id.cmdresettime));
-
+		
+		this.btnRunning = (ToggleButton)findViewById(R.id.btn_running);
+		this.btnWalking = (ToggleButton)findViewById(R.id.btn_walking);
+		this.btnSitting = (ToggleButton)findViewById(R.id.btn_sitting);
+		this.btnSleeping = (ToggleButton)findViewById(R.id.btn_sleeping);
+		this.btnClimbUp = (ToggleButton)findViewById(R.id.btn_climb_up);
+		this.btnClimbDown = (ToggleButton)findViewById(R.id.btn_climb_down);
+		
+		this.selectedButton = btnRunning;
 		this.startdate = Calendar.getInstance().getTime();
 		//		    this.imggraph = ((ImageView)findViewById(2131230749));
 		reset_variables();
@@ -196,6 +216,17 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 	{
 		super.onPause();
 		mSensorManager.unregisterListener(this, mAccelerometer);
+		
+		// if user move to another activity 
+		enableAllToggleButton();
+		ActivityMain.this.isRecording = false;
+		ActivityMain.this.cmdrecord.setEnabled(true);
+//		ActivityMain.this.cmdrecord.setBackgroundResource(R.drawable.button_up);
+		ActivityMain.this.cmdrecord.setText("Start");
+		ActivityMain.this.cmdstop.setEnabled(false);
+		ActivityMain.this.cmdresettime.setEnabled(false);
+		ActivityMain.this.isFirstRecording = true;
+		
 //		timer.cancel();
 //		isActive = true;
 //		exec.shutdownNow();
@@ -257,13 +288,15 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 			}
 		}
 	};
-
+	
 	public void onToggle(View view) {
 		LinearLayout linearLayout = (LinearLayout)view.getParent();
-		((ToggleButton)view).setChecked(true);
+		selectedButton = (ToggleButton)view;
+		
+		selectedButton.setChecked(true);
 		((RadioGroup)linearLayout.getParent()).check(view.getId());
 		// app specific stuff ..
-		String toggleBtnText = ((ToggleButton)view).getText().toString();
+		String toggleBtnText = selectedButton.getText().toString();
 		AppLog.e(toggleBtnText);
 		activityType = getActivityType(toggleBtnText);
 	}
@@ -291,8 +324,6 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 	{
 		this.cmdrecord.setOnClickListener(new View.OnClickListener()
 		{
-			
-
 			@Override
 			public void onClick(View v)
 			{
@@ -304,11 +335,13 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 					//					ActivityMain.this.cmdrecord.setBackgroundResource(2130837507);
 					//					ActivityMain.this.cmdrecord.setText("Pause");
 					reset_variables();
+					disableAllToggleButton();
+					selectedButton.setEnabled(true);
 					startSystemTime = System.currentTimeMillis();
 					ActivityMain.this.cmdstop.setEnabled(true);
 					ActivityMain.this.cmdresettime.setEnabled(true);
 					ActivityMain.this.cmdrecord.setEnabled(false);
-					ActivityMain.this.cmdrecord.setBackgroundResource(R.drawable.button_disabled);
+//					ActivityMain.this.cmdrecord.setBackgroundResource(R.drawable.button_disabled);
 					isStartFirstTimeStamp = true;
 					if (ActivityMain.this.isFirstRecording)
 					{
@@ -342,12 +375,12 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 			{
 
 				//write json and send it to server
-
+				enableAllToggleButton();
 				if (ActivityMain.this.isRecording)
 					ActivityMain.this.enddate = Calendar.getInstance().getTime();
 				ActivityMain.this.isRecording = false;
 				ActivityMain.this.cmdrecord.setEnabled(true);
-				ActivityMain.this.cmdrecord.setBackgroundResource(R.drawable.button_up);
+//				ActivityMain.this.cmdrecord.setBackgroundResource(R.drawable.button_up);
 				ActivityMain.this.cmdrecord.setText("Start");
 				ActivityMain.this.cmdstop.setEnabled(false);
 				ActivityMain.this.cmdresettime.setEnabled(false);
@@ -361,6 +394,9 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 				{ 
 					Vector<Points> list = (Vector<Points>) ActivityMain.this.csvModelList.clone();
 					String id = BeanController.getLoginBean().getId();
+					if(StringUtils.isEmpty(id) || id.equalsIgnoreCase("0")) {
+						id = (String)AppSettings.getPrefernce(ActivityMain.this, null, AppSettings.ACCESS_TOKEN, "");
+					}
 
 					String logData = sendLoggerData(id, activityType+"", ActivityMain.this.startdate.getTime()+"", ActivityMain.this.enddate.getTime()+"", list);
 
@@ -389,7 +425,7 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 					//					new AlertDialog.Builder(ActivityMain.this).setIcon(2130837510).setTitle("Save data?").setPositiveButton("OK", new DialogInterface.OnClickListener()
 					//					{
 					//						public void onClick(DialogInterface paramAnonymous2DialogInterface, int paramAnonymous2Int)
-					//						{
+					//						{android:gravity="center"
 					//							SimpleDateFormat localSimpleDateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
 					//							File localFile = new File(ActivityMain.this.dir, "SLog-" + localSimpleDateFormat.format(ActivityMain.this.enddate) + ".txt");
 					//							if (ActivityMain.this.filesave_choice == 0)
@@ -492,7 +528,7 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
     			if(isRecording) {
     				double d = (sensorEvent.timestamp - this.starttime.doubleValue()) / 1000000000.0D;
     				duration = df0.format(d)+"";
-    				this.txtlogtime.setText("Time : " + this.df3.format(d) + "sec");
+    				this.txtlogtime.setText("" + this.df0.format(d) + " seconds");
     			}
     			this.txtsensordata.setText(Html.fromHtml("<b><font color=\"red\">X axis</font></b> : " + this.df3.format(x) + " m/s<sup>2</sup>" + "<br><b><font color=\"green\">Y axis</font></b> : " + this.df3.format(y) + " m/s<sup>2</sup>" + "<br><b><font color=\"blue\">Z axis</font></b> : " + this.df3.format(z) + " m/s<sup>2</sup>"));
 //    			if(timer.isTerminated()) {
@@ -515,7 +551,7 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 			if(isRecording) {
 				double d = (sensorEvent.timestamp - this.starttime.doubleValue()) / 1000000000.0D;
 				duration =d+"";
-				this.txtlogtime.setText("Time : " + this.df3.format(d) + "sec");
+				this.txtlogtime.setText("" + this.df0.format(d) + " seconds");
 			}
 			this.txtsensordata.setText(Html.fromHtml("<b><font color=\"red\">X axis</font></b> : " + this.df3.format(x) + " m/s<sup>2</sup>" + "<br><b><font color=\"green\">Y axis</font></b> : " + this.df3.format(y) + " m/s<sup>2</sup>" + "<br><b><font color=\"blue\">Z axis</font></b> : " + this.df3.format(z) + " m/s<sup>2</sup>"));
         }
@@ -685,5 +721,22 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 	},0,1000);//Update text every second
 
 	}
-
+	
+	private void disableAllToggleButton() {
+		btnRunning.setEnabled(false);
+		btnWalking.setEnabled(false);
+		btnSitting.setEnabled(false);
+		btnSleeping.setEnabled(false);
+		btnClimbUp.setEnabled(false);
+		btnClimbDown.setEnabled(false);
+	}
+	
+	private void enableAllToggleButton() {
+		btnRunning.setEnabled(true);
+		btnWalking.setEnabled(true);
+		btnSitting.setEnabled(true);
+		btnSleeping.setEnabled(true);
+		btnClimbUp.setEnabled(true);
+		btnClimbDown.setEnabled(true);
+	}
 }

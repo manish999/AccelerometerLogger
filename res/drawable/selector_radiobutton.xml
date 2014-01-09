@@ -1,4 +1,5 @@
-<selector
+<!--
+ <selector
 xmlns:android="http://schemas.android.com/apk/res/android"
 >
 <item
@@ -17,4 +18,11 @@ xmlns:android="http://schemas.android.com/apk/res/android"
     android:state_focused="false"
     android:state_pressed="true"
     android:drawable="@drawable/selector_radiobutton" />
+</selector>
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:drawable="@color/red" android:state_checked="false"/>
+    <item android:drawable="@color/green" android:state_checked="true"/>
+
 </selector>
