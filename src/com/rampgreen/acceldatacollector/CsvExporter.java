@@ -18,11 +18,11 @@ import java.util.ArrayList;
 
 public class CsvExporter extends Activity {
 	// GUI controls
-	EditText txtData;
-	Button btnWriteSDFile;
-	Button btnReadSDFile;
-	Button btnClearScreen;
-	Button btnClose;
+	private EditText txtData;
+	private Button btnWriteSDFile;
+	private Button btnReadSDFile;
+	private Button btnClearScreen;
+	private Button btnClose;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {

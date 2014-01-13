@@ -1,5 +1,7 @@
 package com.rampgreen.acceldatacollector.csv;
 
+import com.rampgreen.acceldatacollector.util.AppLog;
+
 import android.os.Environment;
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
@@ -30,6 +32,7 @@ public class CSVUtil
 		catch (IOException e)
 		{
 			//error
+			AppLog.e(e.getMessage());
 		}
 	}
 
@@ -55,7 +58,7 @@ public class CSVUtil
 
 		List list = csv.parse(strat, csvReader);
 		for (Object object : list) {
-			Object country = (Object) object;
+			Object country = object;
 			//		     System.out.println(country.getCapital());
 		}
 

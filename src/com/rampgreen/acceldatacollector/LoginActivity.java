@@ -69,14 +69,6 @@ public class LoginActivity extends BaseActivity
 	}
 
 	@Override
-	protected void onResume()
-	{
-		super.onResume();
-		// Check device for Play Services APK.
-//		checkPlayServices();
-	}
-
-	@Override
 	public void onResponse(JSONObject response)
 	{
 
@@ -132,9 +124,9 @@ public class LoginActivity extends BaseActivity
 			LoginBean login = BeanController.getLoginBean();
 			login.populateBean(response);
 			AppLog.logString(response.toString());
-			// store deviceID for 
+			// store userID  
 			AppSettings.setPreference(this, null, AppSettings.USER_ID, login.getId());
-			// on success , call Home screen
+			// on success , call Main screen
 			intent = new Intent(getApplicationContext(), ActivityMain.class);
 //			intent.putExtra(Constants.BUNDLE_KEY_USERS, userBean);
 			startActivity(intent);
@@ -184,106 +176,4 @@ public class LoginActivity extends BaseActivity
 			// explicative message.
 		}
 	}
-
-//	private void callUserListWebService () {
-//		String accessToken = BeanController.getLoginBean().getAccessToken();
-//		MyRequestQueue queue = MyVolley.getRequestQueue();
-//		Map<String, String> loginParam = QueryHelper.createAllUsersQuery(accessToken);
-//
-//		CustomRequest customRequest = new CustomRequest(Method.POST,
-//				Constants.URL_WEB_SERVICE, loginParam,
-//				new ResponseListener(), new ErrorListener());
-//		queue.add(customRequest);
-//	}
-
-//	private class ResponseListener implements Response.Listener<JSONObject> {
-//		@Override
-//		public void onResponse(JSONObject response){
-//			int code = Integer.parseInt(response.optString("code"));
-//			String msg = response.optString("message");
-//			switch (code) {
-//			case ParserError.CODE_NO_USER_FOUND:
-//				User userBean = BeanController.getUserBean();
-//				userBean.populateBean(response);
-//				AppLog.logString(response.toString());
-//
-//				TextDisplaySettings textSetting = BeanController.getTextDisplaySettings();
-//				textSetting.populateBean(response);
-//
-//				VisualDisplaySettings visualSetting = BeanController.getVisualDisplaySettings();
-//				visualSetting.populateBean(response);
-//				// on success , call Home screen
-//				Intent intent = new Intent(getApplicationContext(), FragmentChangeActivity.class);
-//				intent.putExtra(Constants.BUNDLE_KEY_USERS, userBean);
-//				startActivity(intent);
-//				// to close the activity
-//				finish();
-//				closeLoadingBar();
-//
-//
-//
-//				//				closeLoadingBar();
-//				break;
-//			case ParserError.CODE_SUCCESS:
-//				userBean = BeanController.getUserBean();
-//				userBean.populateBean(response);
-//				AppLog.logString(response.toString());
-//
-//				textSetting = BeanController.getTextDisplaySettings();
-//				textSetting.populateBean(response);
-//
-//				visualSetting = BeanController.getVisualDisplaySettings();
-//				visualSetting.populateBean(response);
-//				// on success , call Home screen
-//				intent = new Intent(getApplicationContext(), FragmentChangeActivity.class);
-//				intent.putExtra(Constants.BUNDLE_KEY_USERS, userBean);
-//				startActivity(intent);
-//				// to close the activity
-//				finish();
-//				closeLoadingBar();
-//				break;
-//
-//			default:
-//				closeLoadingBar();
-//				break;
-//			}
-//
-//			if (code != ParserError.CODE_SUCCESS)
-//			{
-//				AppLog.logToast(LoginActivity.this, "error web service response code - " + code);
-//			}
-//		}
-//	}
-
-
-//	private class ErrorListener implements Response.ErrorListener{
-//		@Override
-//		public void onErrorResponse(VolleyError error){
-//			closeLoadingBar();
-//			AppLog.logToast(LoginActivity.this, error.toString());
-//		}
-//	}
-
-	/****************************gcm*****************************************/
-	/**
-	 * Check the device to make sure it has the Google Play Services APK. If
-	 * it doesn't, display a dialog that allows users to download the APK from
-	 * the Google Play Store or enable it in the device's system settings.
-	 */
-//	private boolean checkPlayServices() {
-//		int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-//		if (resultCode != ConnectionResult.SUCCESS) {
-//			if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
-//				GooglePlayServicesUtil.getErrorDialog(resultCode, this,
-//						Constants.PLAY_SERVICES_RESOLUTION_REQUEST).show();
-//			} else {
-//				AppLog.showToast(this, "This device is not supported.");
-//				Log.i(AppLog.APP_TAG, "This device is not supported.");
-//				finish();
-//			}
-//			return false;
-//		}
-//		return true;
-//	}
-
 }

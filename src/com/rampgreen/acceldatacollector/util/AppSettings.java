@@ -11,22 +11,13 @@ import android.content.SharedPreferences;
  *
  */
 public class AppSettings {
-	//	AppSettings.setPreference(getApplicationContext(), AppSettings.MESSAGE,txtMessage.getText().toString());
-	//	AppSettings.getPrefernce(getApplicationContext(), AppSettings.MOBILE_NUMBER),AppSettings.getPrefernce(getApplicationContext(), AppSettings.MESSAGE)
 
 	private static final String PREF_NAME = "caretakerpref";
 	public static final String PREF_NAME_OTHER = "otherpref";
 
 	public static final String USER_SELECTED_MAIL_ID = "usermailid";
-	public static final String SALUTATION = "salutation";
-	public static final String DATE_OF_BIRTH = "dob";
 	public static final String ACCESS_TOKEN = "token";
-	public static final String TEMP_TOTAL_USER = "totaluser";
-	public static final String TEMP_DASHBOARD_USER = "dashuser";
-	
-	public static final String FIRST_LEFT_HEXDIGIT = "firstlefthexdigit";
-	public static final String FIRST_RIGHT_HEXDIGIT = "firstrighthexdigit";
-	public static final String MRID_LAST_TWO = "mrid_last_two";
+	public static final String SALUTATION = "salutation";
 	
 	public static final String USER_ID = "uid";
 	public static final String SPEED_SENSOR = "speed_sensor";
