@@ -336,6 +336,7 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 				//				{
 				//					localLoggingActivity.isRecording = bool2;
 				//					return;
+				ActivityMain.this.startdate = Calendar.getInstance().getTime();
 				ActivityMain.this.enddate = Calendar.getInstance().getTime();
 				//				ActivityMain.this.cmdrecord.setBackgroundResource(R.drawable.button_record);
 				//				ActivityMain.this.cmdrecord.setText("Resume");
@@ -463,7 +464,23 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 				ActivityMain.this.reset_variables();
 				ActivityMain.this.startdate = Calendar.getInstance().getTime();
 				ActivityMain.this.enddate = Calendar.getInstance().getTime();
-				ActivityMain.this.isStartFirstTimeStamp = true;
+//				ActivityMain.this.isStartFirstTimeStamp = true;
+				
+				enableAllToggleButton();
+				if (ActivityMain.this.isRecording)
+					ActivityMain.this.enddate = Calendar.getInstance().getTime();
+				ActivityMain.this.isRecording = false;
+				ActivityMain.this.cmdrecord.setEnabled(true);
+//				ActivityMain.this.cmdrecord.setBackgroundResource(R.drawable.button_up);
+				ActivityMain.this.cmdrecord.setText("Start");
+				ActivityMain.this.cmdstop.setEnabled(false);
+				ActivityMain.this.cmdresettime.setEnabled(false);
+				ActivityMain.this.isFirstRecording = true;
+				if (ActivityMain.this.isStartFirstTimeStamp)
+				{
+					ActivityMain.this.isStartFirstTimeStamp = false;
+					//		              ActivityMain.this.writeheaders();
+				}
 			}
 		});
 	}
@@ -494,6 +511,7 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 
     			pointBuffer.append(df3.format(x) + COMMA + df3.format(y) + COMMA + df3.format(z) + COMMA);
     			if(isStartFirstTimeStamp) {
+    				ActivityMain.this.startdate = Calendar.getInstance().getTime();
     				this.starttime = Double.valueOf(sensorEvent.timestamp);
     				isStartFirstTimeStamp = false;
     			}
@@ -514,6 +532,7 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 
 			pointBuffer.append(df3.format(x) + COMMA + df3.format(y) + COMMA + df3.format(z) + COMMA);
 			if(isStartFirstTimeStamp) {
+				ActivityMain.this.startdate = Calendar.getInstance().getTime();
 				this.starttime = Double.valueOf(sensorEvent.timestamp);
 				isStartFirstTimeStamp = false;
 			}

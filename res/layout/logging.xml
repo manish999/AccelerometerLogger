@@ -90,9 +90,10 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="4.0dip"
                         android:layout_marginTop="4.0dip"
+                        android:background="@drawable/btn_enable"
                         android:enabled="true"
                         android:text="Start"
-                        android:textColor="@android:color/black" />
+                        android:textColor="@android:color/white" />
 
                     <Button
                         android:id="@+id/cmdstopsave"
@@ -100,9 +101,10 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="4.0dip"
                         android:layout_marginTop="4.0dip"
+                        android:background="@drawable/btn_enable"
                         android:enabled="false"
                         android:text="Stop and Save"
-                        android:textColor="@android:color/black" />
+                        android:textColor="@android:color/white" />
 
                     <Button
                         android:id="@+id/cmdresettime"
@@ -110,9 +112,10 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="4.0dip"
                         android:layout_marginTop="4.0dip"
+                        android:background="@drawable/btn_enable"
                         android:enabled="false"
-                        android:text="Reset Log"
-                        android:textColor="@android:color/black" />
+                        android:text="Reset"
+                        android:textColor="@android:color/white" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
@@ -128,10 +131,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:textStyle="bold"
                 android:text="0 seconds"
                 android:textAppearance="?android:textAppearanceLarge"
-                android:textColor="@android:color/black" />
+                android:textColor="@android:color/black"
+                android:textStyle="bold" />
         </LinearLayout>
 
         <ImageView
