@@ -45,7 +45,7 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 	private static final String COMMA = "," ;
 	private SensorManager mSensorManager;
 	private Sensor mAccelerometer;
-	private StringBuilder pointBuffer = new StringBuilder();// seperated by comma
+	private StringBuilder pointBufferFiller = new StringBuilder();// seperated by comma
 
 	private Button cmdrecord;
 	private Button cmdresettime;
@@ -68,7 +68,7 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 	boolean isFirstRecording = true;
 	boolean isRecording = false;
 	boolean isStartFirstTimeStamp = false;
-	private String duration;
+	private String duration = "";
 
 	private Vector<Points> csvModelList = new Vector<Points>();
 	
@@ -112,7 +112,7 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 		this.selectedButton = btnRunning;
 		this.startdate = Calendar.getInstance().getTime();
 		//		    this.imggraph = ((ImageView)findViewById(2131230749));
-		reset_variables();
+		resetSensorDataFiller();
 		setListener();
 		/*******************************************************************
 		this.dir = new File(Environment.getExternalStorageDirectory() + "/AccelLogger");
@@ -278,10 +278,10 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 		activityType = getActivityType(toggleBtnText);
 	}
 
-	private void reset_variables()
+	private void resetSensorDataFiller()
 	{
 		csvModelList.clear();
-		pointBuffer.setLength(0);// more faster than insert and allocate new one
+		pointBufferFiller.setLength(0);// more faster than insert and allocate new one
 
 		//	    this.valuesX.clear();
 		//	    this.valuesY.clear();
@@ -311,10 +311,10 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 				{
 					//					ActivityMain.this.cmdrecord.setBackgroundResource(2130837507);
 					//					ActivityMain.this.cmdrecord.setText("Pause");
-					reset_variables();
+					resetSensorDataFiller();
 					disableAllToggleButton();
 					selectedButton.setEnabled(true);
-					startSystemTime = System.currentTimeMillis();
+					
 					ActivityMain.this.cmdstop.setEnabled(true);
 					ActivityMain.this.cmdresettime.setEnabled(true);
 					ActivityMain.this.cmdrecord.setEnabled(false);
@@ -338,11 +338,8 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 				//					return;
 				ActivityMain.this.startdate = Calendar.getInstance().getTime();
 				ActivityMain.this.enddate = Calendar.getInstance().getTime();
-				//				ActivityMain.this.cmdrecord.setBackgroundResource(R.drawable.button_record);
-				//				ActivityMain.this.cmdrecord.setText("Resume");
-				//					break;
-				//					label148: bool2 = true;
-				//				}
+				startSystemTime = System.currentTimeMillis();
+				duration = "0";
 			}
 		});
 
@@ -461,7 +458,7 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 		{
 			public void onClick(View paramAnonymousView)
 			{
-				ActivityMain.this.reset_variables();
+				ActivityMain.this.resetSensorDataFiller();
 				ActivityMain.this.startdate = Calendar.getInstance().getTime();
 				ActivityMain.this.enddate = Calendar.getInstance().getTime();
 //				ActivityMain.this.isStartFirstTimeStamp = true;
@@ -508,11 +505,13 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
     			long timestamp = sensorEvent.timestamp;
     			// adding the data to the list
     			csvModelList.add(new Points(x,y,z));
-
-    			pointBuffer.append(df3.format(x) + COMMA + df3.format(y) + COMMA + df3.format(z) + COMMA);
+    			pointBufferFiller.append(df3.format(x) + COMMA + df3.format(y) + COMMA + df3.format(z) + COMMA);
+    			
     			if(isStartFirstTimeStamp) {
     				ActivityMain.this.startdate = Calendar.getInstance().getTime();
     				this.starttime = Double.valueOf(sensorEvent.timestamp);
+    				// start reading from 1st second so leave the 0th reading. 
+    				resetSensorDataFiller();
     				isStartFirstTimeStamp = false;
     			}
     			if(isRecording) {
@@ -529,11 +528,13 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 			long timestamp = sensorEvent.timestamp;
 			// adding the data to the list
 			csvModelList.add(new Points(x,y,z));
-
-			pointBuffer.append(df3.format(x) + COMMA + df3.format(y) + COMMA + df3.format(z) + COMMA);
+			pointBufferFiller.append(df3.format(x) + COMMA + df3.format(y) + COMMA + df3.format(z) + COMMA);
+			
 			if(isStartFirstTimeStamp) {
 				ActivityMain.this.startdate = Calendar.getInstance().getTime();
 				this.starttime = Double.valueOf(sensorEvent.timestamp);
+				// start reading from 1st second so leave the 0th reading. 
+				resetSensorDataFiller();
 				isStartFirstTimeStamp = false;
 			}
 			if(isRecording) {
@@ -547,6 +548,9 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 
 	private String sendLoggerData(String userID, String activityType, String startTime, String endTime, Vector<Points> pointsList) throws JSONException 
 	{
+		if(duration.equalsIgnoreCase("0")) {
+			return "Duration is 0, so no need to send logged data.";
+		}
 		// Here we convert Java Object to JSON 
 		JSONObject jsonObj = new JSONObject();
 		jsonObj.put("user_id", userID); // Set the first name/pair 
@@ -556,7 +560,7 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 		jsonObj.put("start_time_stamp", startTime);
 		jsonObj.put("end_time_stamp", endTime);
 		jsonObj.put("duration", duration);
-		StringBuilder stringBuilder = new StringBuilder(pointBuffer);
+		StringBuilder stringBuilder = new StringBuilder(pointBufferFiller);
 		//		for (Points points : pointsList)
 		//		{
 		//			stringBuilder.append(points.getX() + "," + points.getY() + "," +points.getZ());
@@ -612,7 +616,7 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 	@Override
 	public void onResponse(Object response)
 	{
-		reset_variables();
+		resetSensorDataFiller();
 		AppLog.e("Volly success"+response.toString());
 		// TODO Auto-generated method stub
 
@@ -621,7 +625,7 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 	@Override
 	public void onErrorResponse(VolleyError error)
 	{
-		reset_variables();
+		resetSensorDataFiller();
 		AppLog.e("Volly error"+error.getMessage());
 	}
 
