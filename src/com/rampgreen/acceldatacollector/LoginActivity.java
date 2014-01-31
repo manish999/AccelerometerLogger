@@ -49,6 +49,7 @@ public class LoginActivity extends BaseActivity
 					String password = mEtPassword.getText().toString();
 
 					AppSettings.setPreference(LoginActivity.this, null, AppSettings.USER_SELECTED_MAIL_ID, username);
+					AppSettings.setPreference(LoginActivity.this, null, AppSettings.USER_SELECTED_PASSWORD, password);
 
 					if(! WidgetUtil.checkInternetConnection(LoginActivity.this)) {
 						WidgetUtil.showSettingDialog(LoginActivity.this);
@@ -127,8 +128,9 @@ public class LoginActivity extends BaseActivity
 			// store userID  
 			AppSettings.setPreference(this, null, AppSettings.USER_ID, login.getId());
 			// on success , call Main screen
-			intent = new Intent(getApplicationContext(), ActivityMain.class);
+			intent = new Intent(getApplicationContext(), MainActivity.class);
 //			intent.putExtra(Constants.BUNDLE_KEY_USERS, userBean);
+			intent.putExtra(Constants.CALLING_ACTIVITY_TYPE, Constants.CALLING_ACTIVITY_LOGIN);
 			startActivity(intent);
 			// to close the activity
 			finish();

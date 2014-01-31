@@ -17,4 +17,11 @@ public class Constants
 	public static final String ACCEL_ACTIVITY_CLIMBING_DOWN = "6";
 
 	public static final String LOGIN_EMAIL = "loginmail";
+	
+	public static final String CALLING_ACTIVITY_TYPE= "calling_activity";
+	public static final int CALLING_ACTIVITY_BY_BACK_BUTTON = 100;
+	public static final int CALLING_ACTIVITY_SPLASH = 101;
+	public static final int CALLING_ACTIVITY_LOGIN= 102;
+	public static final int CALLING_ACTIVITY_REGISTRATION= 103;
+	public static final int CALLING_ACTIVITY_MAIN= 104;
 }

@@ -16,6 +16,7 @@ public class AppSettings {
 	public static final String PREF_NAME_OTHER = "otherpref";
 
 	public static final String USER_SELECTED_MAIL_ID = "usermailid";
+	public static final String USER_SELECTED_PASSWORD = "password";
 	public static final String ACCESS_TOKEN = "token";
 	public static final String SALUTATION = "salutation";
 	

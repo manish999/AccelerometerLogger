@@ -1,4 +1,4 @@
-package com.rampgreen.acceldatacollector.util;
+package com.rampgreen.acceldatacollector.db;
 
 import android.content.Context;
 import android.util.Log;
