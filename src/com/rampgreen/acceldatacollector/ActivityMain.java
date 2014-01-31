@@ -222,13 +222,15 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 		switch (p_item.getItemId()) {
 		case 0:
 
-		case R.id.action_settings:
-			intent = new Intent(this, PreferencesActivity.class);
-			startActivity(intent);
-			break;
+//		case R.id.action_settings:
+//			intent = new Intent(this, PreferencesActivity.class);
+//			startActivity(intent);
+//			break;
 		case R.id.action_logout:
 			AppSettings.setPreference(this, null, AppSettings.ACCESS_TOKEN, "");
 			AppSettings.setPreference(this, null, AppSettings.USER_ID, "");
+//			AppSettings.setPreference(this, null, AppSettings.USER_SELECTED_MAIL_ID, "");
+			AppSettings.setPreference(this, null, AppSettings.USER_SELECTED_PASSWORD, "");
 			BeanController.getLoginBean().setId("");
 
 			intent = new Intent(getApplicationContext(), LoginActivity.class);

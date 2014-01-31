@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -20,7 +21,6 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -29,6 +29,8 @@ import com.android.volley.Response.ErrorListener;
 import com.android.volley.Response.Listener;
 import com.android.volley.VolleyError;
 import com.rampgreen.acceldatacollector.csv.Points;
+import com.rampgreen.acceldatacollector.db.MyAppDbAdapter;
+import com.rampgreen.acceldatacollector.db.MyAppDbSQL;
 import com.rampgreen.acceldatacollector.util.AppLog;
 import com.rampgreen.acceldatacollector.util.AppSettings;
 import com.rampgreen.acceldatacollector.util.StringUtils;
@@ -38,27 +40,23 @@ import java.io.FileWriter;
 import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
 public class MainActivity extends Activity  implements SensorEventListener, Listener, ErrorListener
 {
+	private int whichButtonSelected = 0;
+	
 	private static final String COMMA = "," ;
 	private SensorManager mSensorManager;
 	private Sensor mAccelerometer;
 	private StringBuilder pointBufferFiller = new StringBuilder();// seperated by comma
 
-	private Button cmdrecord;
-	private Button cmdresettime;
-	private Button cmdstop;
 	private TextView txtlogtime;
 	private TextView txtsensordata;
-	private String activityType = Constants.ACCEL_ACTIVITY_RUNNING;
+	private String activityTypeForSensor = Constants.ACCEL_ACTIVITY_RUNNING;
 	private Date enddate;
-	private FileWriter writer;
-	private File dir;
-	private File f;
-	private int filesave_choice;
 	private Date startdate;
 	private Double starttime = Double.valueOf(0.0D);
 	private Vector<Double> times = new Vector();
@@ -66,19 +64,11 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 	private DecimalFormat df6 = new DecimalFormat("#0.000000");
 	private DecimalFormat df0 = new DecimalFormat("#0");
 
-	boolean isFirstRecording = true;
 	boolean isRecording = false;
 	boolean isStartFirstTimeStamp = false;
-	private String duration = "";
+	private String duration = "0";
 
 	private Vector<Points> csvModelList = new Vector<Points>();
-
-	private ToggleButton btnRunning;
-	private ToggleButton btnWalking;
-	private ToggleButton btnSitting;
-	private ToggleButton btnSleeping;
-	private ToggleButton btnClimbUp;
-	private ToggleButton btnClimbDown;
 
 	ToggleButton selectedButton;
 	int calledActivity;
@@ -89,11 +79,11 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		setContentView(R.layout.logging);
+		setContentView(R.layout.logging_new);
 
 		// initialising the ui element 
 		initUI();
-		
+
 		String userName = (String) AppSettings.getPrefernce(this, null, AppSettings.USER_SELECTED_MAIL_ID, ""); 
 		String password = (String) AppSettings.getPrefernce(this, null, AppSettings.USER_SELECTED_PASSWORD, "");
 
@@ -111,7 +101,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 				AppSettings.setPreference(this, null, AppSettings.USER_SELECTED_PASSWORD, "");
 				AppSettings.setPreference(this, null, AppSettings.USER_ID, "");
 				BeanController.getLoginBean().setId("");
-				
+
 				Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
 				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 				startActivity(intent);
@@ -131,30 +121,14 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
-		// setting listener
-		RadioGroup radioGroup = (RadioGroup) findViewById(R.id.toggleGroup);
-		radioGroup.setOnCheckedChangeListener(ToggleListener);
-
-
-
 		this.txtsensordata = ((TextView)findViewById(R.id.txtlogdata));
 		this.txtlogtime = ((TextView)findViewById(R.id.txtlogtime));
-		this.cmdrecord = ((Button)findViewById(R.id.cmdrecord));
-		this.cmdstop = ((Button)findViewById(R.id.cmdstopsave));
-		this.cmdresettime = ((Button)findViewById(R.id.cmdresettime));
+		//		this.cmdrecord = ((Button)findViewById(R.id.cmdrecord));
+		//		this.cmdstop = ((Button)findViewById(R.id.cmdstopsave));
 
-		this.btnRunning = (ToggleButton)findViewById(R.id.btn_running);
-		this.btnWalking = (ToggleButton)findViewById(R.id.btn_walking);
-		this.btnSitting = (ToggleButton)findViewById(R.id.btn_sitting);
-		this.btnSleeping = (ToggleButton)findViewById(R.id.btn_sleeping);
-		this.btnClimbUp = (ToggleButton)findViewById(R.id.btn_climb_up);
-		this.btnClimbDown = (ToggleButton)findViewById(R.id.btn_climb_down);
-
-		this.selectedButton = btnRunning;
 		this.startdate = Calendar.getInstance().getTime();
-		//		    this.imggraph = ((ImageView)findViewById(2131230749));
 		resetSensorDataFiller();
-		setListener();
+
 		/*******************************************************************
 		this.dir = new File(Environment.getExternalStorageDirectory() + "/AccelLogger");
 		this.dir.mkdirs();
@@ -179,46 +153,22 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		case 0:
 			mSensorManager.registerListener(this, mAccelerometer,
 					SensorManager.SENSOR_DELAY_NORMAL);
-
-			//			timer.schedule(new TimerTask() {
-			//				@Override
-			//				public void run() {
-			//					activateSensor();
-			//				    }
-			//				},0,1000);//Update text every second
-
-			//			exec.schedule(new Runnable(){
-			//			    @Override
-			//			    public void run(){
-			//			        activateSensor();
-			//			    }
-			//			}, 1, TimeUnit.SECONDS);
-
 			break;
 		case 1:
 			mSensorManager.registerListener(this, mAccelerometer,
 					SensorManager.SENSOR_DELAY_NORMAL);
-			//			timer.cancel();
-			//			isActive = true;
-			//			exec.shutdownNow();
 			break;
 		case 2:
 			mSensorManager.registerListener(this, mAccelerometer,
 					SensorManager.SENSOR_DELAY_UI);
-			//			timer.cancel();
-			//			isActive = true;
 			break;
 		case 3:
 			mSensorManager.registerListener(this, mAccelerometer,
 					SensorManager.SENSOR_DELAY_GAME);
-			//			timer.cancel();
-			//			isActive = true;
 			break;
 		case 4:
 			mSensorManager.registerListener(this, mAccelerometer,
 					SensorManager.SENSOR_DELAY_FASTEST);
-			//			timer.cancel();
-			//			isActive = true;
 			break;
 		case 5:
 
@@ -227,6 +177,11 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		default:
 			break;
 		}
+		String userID = BeanController.getLoginBean().getId();
+		if(StringUtils.isEmpty(userID) || userID.equalsIgnoreCase("0")) {
+			userID = (String)AppSettings.getPrefernce(MainActivity.this, null, AppSettings.USER_ID, "");
+		}
+		fetchAccelData(userID, activityTypeForSensor);
 	}
 
 	@Override
@@ -235,15 +190,15 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		super.onPause();
 		mSensorManager.unregisterListener(this, mAccelerometer);
 
+		// fetch all activities data 
 		// if user move to another activity 
 		enableAllToggleButton();
 		MainActivity.this.isRecording = false;
-		MainActivity.this.cmdrecord.setEnabled(true);
+		//		MainActivity.this.cmdrecord.setEnabled(true);
 		//		MainActivity.this.cmdrecord.setBackgroundResource(R.drawable.button_up);
-		MainActivity.this.cmdrecord.setText("Start");
-		MainActivity.this.cmdstop.setEnabled(false);
-		MainActivity.this.cmdresettime.setEnabled(false);
-		MainActivity.this.isFirstRecording = true;
+		//		MainActivity.this.cmdrecord.setText("Start");
+		//		MainActivity.this.cmdstop.setEnabled(false);
+		//		MainActivity.this.cmdresettime.setEnabled(false);
 
 		//		timer.cancel();
 		//		isActive = true;
@@ -262,11 +217,11 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		Intent intent;
 		switch (p_item.getItemId()) {
 		case 0:
-
-		case R.id.action_settings:
-			intent = new Intent(this, PreferencesActivity.class);
-			startActivity(intent);
 			break;
+			//		case R.id.action_settings:
+			//			intent = new Intent(this, PreferencesActivity.class);
+			//			startActivity(intent);
+			//			break;
 		case R.id.action_logout:
 			AppSettings.setPreference(this, null, AppSettings.ACCESS_TOKEN, "");
 			AppSettings.setPreference(this, null, AppSettings.USER_SELECTED_PASSWORD, "");
@@ -280,44 +235,6 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 			return true;
 		}
 		return super.onOptionsItemSelected(p_item);
-	}
-
-	static final RadioGroup.OnCheckedChangeListener ToggleListener = new RadioGroup.OnCheckedChangeListener() {
-		@Override
-		public void onCheckedChanged(final RadioGroup radioGroup, final int i) {
-			LinearLayout toggleButtonContainer;
-			for (int index = 0; index < radioGroup.getChildCount(); index++) {
-				toggleButtonContainer =  (LinearLayout) radioGroup.getChildAt(index);
-				for (int j = 0; j < toggleButtonContainer.getChildCount(); j++) {
-					final ToggleButton view = (ToggleButton) toggleButtonContainer.getChildAt(j);
-					if(view.getId() == i) {
-						view.setChecked(true);	
-					} else {
-						view.setChecked(false);
-					}
-					boolean shouldcheck ;
-					//					if(view.isChecked()) {
-					//						shouldcheck = true;
-					//					} else {
-					shouldcheck = view.getId() == i;
-					//					}
-
-					//					view.setChecked(true);
-				}
-			}
-		}
-	};
-
-	public void onToggle(View view) {
-		LinearLayout linearLayout = (LinearLayout)view.getParent();
-		selectedButton = (ToggleButton)view;
-
-		selectedButton.setChecked(true);
-		((RadioGroup)linearLayout.getParent()).check(view.getId());
-		// app specific stuff ..
-		String toggleBtnText = selectedButton.getText().toString();
-		AppLog.e(toggleBtnText);
-		activityType = getActivityType(toggleBtnText);
 	}
 
 	private void resetSensorDataFiller()
@@ -339,190 +256,6 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 	}
 
 	private long startSystemTime;
-	private void setListener()
-	{
-		this.cmdrecord.setOnClickListener(new View.OnClickListener()
-		{
-			@Override
-			public void onClick(View v)
-			{
-				MainActivity localLoggingActivity;
-				boolean bool2;
-
-				if (!MainActivity.this.isRecording)
-				{
-					//					MainActivity.this.cmdrecord.setBackgroundResource(2130837507);
-					//					MainActivity.this.cmdrecord.setText("Pause");
-					resetSensorDataFiller();
-					disableAllToggleButton();
-					selectedButton.setEnabled(true);
-
-					MainActivity.this.cmdstop.setEnabled(true);
-					MainActivity.this.cmdresettime.setEnabled(true);
-					MainActivity.this.cmdrecord.setEnabled(false);
-					//					MainActivity.this.cmdrecord.setBackgroundResource(R.drawable.button_disabled);
-					isStartFirstTimeStamp = true;
-					if (MainActivity.this.isFirstRecording)
-					{
-						MainActivity.this.isFirstRecording = false;
-						//		              MainActivity.this.writeheaders();
-					}
-					localLoggingActivity = MainActivity.this;
-					//					boolean bool1 = MainActivity.this.isRecording;
-					//					bool2 = false;
-					//					if (!bool1)
-					//						break label148;
-				}
-				MainActivity.this.isRecording = true;
-				//				while (true)
-				//				{
-				//					localLoggingActivity.isRecording = bool2;
-				//					return;
-				MainActivity.this.startdate = Calendar.getInstance().getTime();
-				MainActivity.this.enddate = Calendar.getInstance().getTime();
-				startSystemTime = System.currentTimeMillis();
-				duration = "0";
-			}
-		});
-
-		this.cmdstop.setOnClickListener(new View.OnClickListener()
-		{
-
-			public void onClick(View paramAnonymousView)
-			{
-
-				//write json and send it to server
-				enableAllToggleButton();
-				if (MainActivity.this.isRecording)
-					MainActivity.this.enddate = Calendar.getInstance().getTime();
-				MainActivity.this.isRecording = false;
-				MainActivity.this.cmdrecord.setEnabled(true);
-				//				MainActivity.this.cmdrecord.setBackgroundResource(R.drawable.button_up);
-				MainActivity.this.cmdrecord.setText("Start");
-				MainActivity.this.cmdstop.setEnabled(false);
-				MainActivity.this.cmdresettime.setEnabled(false);
-				MainActivity.this.isFirstRecording = true;
-				if (MainActivity.this.isStartFirstTimeStamp)
-				{
-					MainActivity.this.isStartFirstTimeStamp = false;
-					//		              MainActivity.this.writeheaders();
-				}
-				try
-				{ 
-					Vector<Points> list = (Vector<Points>) MainActivity.this.csvModelList.clone();
-					String id = BeanController.getLoginBean().getId();
-					if(StringUtils.isEmpty(id) || id.equalsIgnoreCase("0")) {
-						id = (String)AppSettings.getPrefernce(MainActivity.this, null, AppSettings.ACCESS_TOKEN, "");
-					}
-
-					String logData = sendLoggerData(id, activityType+"", MainActivity.this.startdate.getTime()+"", MainActivity.this.enddate.getTime()+"", list);
-
-					//					MainActivity.this.writer.append(id+ "," + MainActivity.this.startdate+ ","+MainActivity.this.enddate+"," +1+","+3000+",");
-					//					for (Points points : list)
-					//					{
-					//						MainActivity.this.writer.append(points.toString()+ ",");
-					//					}
-					//write csv file 
-					//					Vector<Points> list = (Vector<Points>) MainActivity.this.csvModelList.clone();
-					//					String id = BeanController.getLoginBean().getId();
-					//					MainActivity.this.writer.append(id+ "," + MainActivity.this.startdate+ ","+MainActivity.this.enddate+"," +1+","+3000+",");
-					//					for (Points points : list)
-					//					{
-					//						MainActivity.this.writer.append(points.toString()+ ",");
-					//					}
-					//					MainActivity.this.writer.append("\n###end");
-					//
-					//					MainActivity.this.writer.append("\nData logging started on: " + MainActivity.this.startdate.toString() + "\nData logging stopped on: " + MainActivity.this.enddate.toString() + "\n");
-					//					MainActivity.this.writer.flush();
-					//					MainActivity.this.writer.close();
-					//					CharSequence[] arrayOfCharSequence = { "Save to text file", "Save to CSV file" };
-					//					MainActivity.this.filesave_choice = 0;
-					//					new AlertDialog.Builder(MainActivity.this).setIcon(2130837510).setTitle("Save data?").setPositiveButton("OK", new DialogInterface.OnClickListener()
-					//					{
-					//						public void onClick(DialogInterface paramAnonymous2DialogInterface, int paramAnonymous2Int)
-					//						{android:gravity="center"
-					//							SimpleDateFormat localSimpleDateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
-					//							File localFile = new File(MainActivity.this.dir, "SLog-" + localSimpleDateFormat.format(MainActivity.this.enddate) + ".txt");
-					//							if (MainActivity.this.filesave_choice == 0)
-					//								localFile = new File(MainActivity.this.dir, "SLog-" + localSimpleDateFormat.format(MainActivity.this.enddate) + ".txt");
-					//							MainActivity.this.f.renameTo(localFile);
-					//							MainActivity.this.f = new File(MainActivity.this.dir, "temp.txt");
-					//							try
-					//							{
-					//								MainActivity.this.f.createNewFile();
-					//								MainActivity.this.writer = new FileWriter(MainActivity.this.f);
-					//								Toast.makeText(MainActivity.this.getApplicationContext(), "Sensor data successfully saved to " + MainActivity.this.dir.getPath() + "/", 1).show();
-					//								return;
-					//								//									if (MainActivity.this.filesave_choice != 1)
-					//								//									localFile = new File(MainActivity.this.dir, "SLog-" + localSimpleDateFormat.format(MainActivity.this.enddate) + ".csv");
-					//							}
-					//							catch (IOException localIOException)
-					//							{
-					//								localIOException.printStackTrace();
-					//							}
-					//						}
-					//					}).setNegativeButton("Cancel", new DialogInterface.OnClickListener()
-					//					{
-					//						public void onClick(DialogInterface paramAnonymous2DialogInterface, int paramAnonymous2Int)
-					//						{
-					//							MainActivity.this.f.delete();
-					//							MainActivity.this.f = new File(MainActivity.this.dir, "temp.txt");
-					//							try
-					//							{
-					//								MainActivity.this.f.createNewFile();
-					//								MainActivity.this.writer = new FileWriter(MainActivity.this.f);
-					//								Toast.makeText(MainActivity.this.getApplicationContext(), "Sensor data was not saved.", 0).show();
-					//								return;
-					//							}
-					//							catch (IOException localIOException)
-					//							{
-					//								while (true)
-					//									localIOException.printStackTrace();
-					//							}
-					//						}
-					//					}).setSingleChoiceItems(arrayOfCharSequence, 0, new DialogInterface.OnClickListener()
-					//					{
-					//						public void onClick(DialogInterface paramAnonymous2DialogInterface, int paramAnonymous2Int)
-					//						{
-					//							MainActivity.this.filesave_choice = paramAnonymous2Int;
-					//						}
-					//					}).show();
-					//					return;
-				}
-				catch (JSONException localIOException)
-				{
-					localIOException.printStackTrace();
-				}
-			}
-		});
-
-		this.cmdresettime.setOnClickListener(new View.OnClickListener()
-		{
-			public void onClick(View paramAnonymousView)
-			{
-				MainActivity.this.resetSensorDataFiller();
-				MainActivity.this.startdate = Calendar.getInstance().getTime();
-				MainActivity.this.enddate = Calendar.getInstance().getTime();
-				//				MainActivity.this.isStartFirstTimeStamp = true;
-
-				enableAllToggleButton();
-				if (MainActivity.this.isRecording)
-					MainActivity.this.enddate = Calendar.getInstance().getTime();
-				MainActivity.this.isRecording = false;
-				MainActivity.this.cmdrecord.setEnabled(true);
-				//				MainActivity.this.cmdrecord.setBackgroundResource(R.drawable.button_up);
-				MainActivity.this.cmdrecord.setText("Start");
-				MainActivity.this.cmdstop.setEnabled(false);
-				MainActivity.this.cmdresettime.setEnabled(false);
-				MainActivity.this.isFirstRecording = true;
-				if (MainActivity.this.isStartFirstTimeStamp)
-				{
-					MainActivity.this.isStartFirstTimeStamp = false;
-					//		              MainActivity.this.writeheaders();
-				}
-			}
-		});
-	}
 
 	@Override
 	public void onAccuracyChanged(Sensor arg0, int arg1)
@@ -530,14 +263,60 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 
 	}
 
+	private void peroformButtonClick () {
+		switch (whichButtonSelected) {
+		case 1001:
+			buttonRunning.performClick();
+			break;
+		case 1002:
+			buttonWalking.performClick();
+			break;
+		case 1003:
+			buttonSitting.performClick();
+			break;
+		case 1004:
+			buttonclimbingUp.performClick();
+			break;
+		case 1005:
+			buttonClimbingDown.performClick();
+			break;
+
+		default:
+			break;
+		}
+		
+		AppLog.e("performclick  ActivityType:   "+ activityTypeForSensor);
+//		if(activityTypeForSensor.equalsIgnoreCase(Constants.ACCEL_ACTIVITY_RUNNING)) {
+//			buttonRunning.performClick();
+//		} else if(activityTypeForSensor.equalsIgnoreCase(Constants.ACCEL_ACTIVITY_WALKING)) {
+//			buttonWalking.performClick();
+//		} else if(activityTypeForSensor.equalsIgnoreCase(Constants.ACCEL_ACTIVITY_SITTING)) {
+//			buttonSitting.performClick();
+//		} else if(activityTypeForSensor.equalsIgnoreCase(Constants.ACCEL_ACTIVITY_CLIMBING_UP)) {
+//			buttonclimbingUp.performClick();
+//		} else if(activityTypeForSensor.equalsIgnoreCase(Constants.ACCEL_ACTIVITY_CLIMBING_DOWN)) {
+//			buttonClimbingDown.performClick();
+//		}
+	}
+
 	@Override
 	public void onSensorChanged(SensorEvent sensorEvent)
 	{
-		//		if (isActive) {
-		//            numSamples++;
+		// automatic stop after one second 
+		int durationInt = Integer.parseInt(duration);
+		if(durationInt >= 60) {
+			com.rampgreen.acceldatacollector.db.AppLog.e(duration);
+			isStartFirstTimeStamp = false;
+			isRecording = false;
+			peroformButtonClick();
+			duration =  "0";
+			return;
+		}
+
 		if(selectedSpeed == 0) {
 			long now = System.currentTimeMillis();
 			if (now >= startSystemTime + 1000) {
+				com.rampgreen.acceldatacollector.db.AppLog.e(duration);
 				//                samplingRate = numSamples / ((now - startSystemTime) / 1000.0);
 				startSystemTime = now;
 
@@ -672,28 +451,33 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 	}
 
 	private String getActivityType(String activityType) {
-		AppLog.e(activityType);
+		AppLog.e("ingetActivtyTypeMethod : start"+activityType);
 		String[] arrayOfString = getResources().getStringArray(R.array.date_array);
 		if(activityType.equalsIgnoreCase("Running")) {
+			AppLog.e("Run"+activityType);
 			return Constants.ACCEL_ACTIVITY_RUNNING;
 		} else if(activityType.equalsIgnoreCase("Walking")) {
+			AppLog.e("walk"+activityType);
 			return Constants.ACCEL_ACTIVITY_WALKING;
 		} else if(activityType.equalsIgnoreCase("Sitting")) {
+			AppLog.e("sit"+activityType);
 			return Constants.ACCEL_ACTIVITY_SITTING;
-		} else if(activityType.equalsIgnoreCase("Sleeping")) {
-			return Constants.ACCEL_ACTIVITY_SLEEPING;
+			//		} else if(activityType.equalsIgnoreCase("Sleeping")) {
+			//			return Constants.ACCEL_ACTIVITY_SLEEPING;
 		} else if(activityType.equalsIgnoreCase("Climb Up")) {
+			AppLog.e("climb up"+activityType);
 			return Constants.ACCEL_ACTIVITY_CLIMBING_UP;
 		} else if(activityType.equalsIgnoreCase("Climb Down")) {
+			AppLog.e("climb down"+activityType);
 			return Constants.ACCEL_ACTIVITY_CLIMBING_DOWN;
 		}
+		AppLog.e("ingetActivtyTypeMethod : end execption case"+activityType);
 		return Constants.ACCEL_ACTIVITY_RUNNING;
 	}
 
 	private void disableAllToggleButton() {
 		buttonRunning.setEnabled(false);
 		buttonWalking.setEnabled(false);
-		buttonSitting.setEnabled(false);
 		buttonSitting.setEnabled(false);
 		buttonclimbingUp.setEnabled(false);
 		buttonClimbingDown.setEnabled(false);
@@ -703,123 +487,470 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		buttonRunning.setEnabled(true);
 		buttonWalking.setEnabled(true);
 		buttonSitting.setEnabled(true);
-		buttonSitting.setEnabled(true);
 		buttonclimbingUp.setEnabled(true);
 		buttonClimbingDown.setEnabled(true);
 	}
-	
+
 	ProgressBar runningBar1; 
 	ProgressBar runningBar2;
 	ProgressBar runningBar3;
 	Button buttonRunning;
-	
+
 	ProgressBar walkingBar1;
 	ProgressBar walkingBar2;
 	ProgressBar walkingBar3;
 	Button buttonWalking;
-	
+
 	ProgressBar sittingBar1;
 	ProgressBar sittingBar2;
 	ProgressBar sittingBar3;
 	Button buttonSitting;
-	
+
 	ProgressBar climbingUpBar1;
 	ProgressBar climbingUpBar2;
 	ProgressBar climbingUpBar3;
 	Button buttonclimbingUp;
-	
+
 	ProgressBar climbingDownBar1;
 	ProgressBar climbingDownBar2;
 	ProgressBar climbingDownBar3;
 	Button buttonClimbingDown;
-	
+
 	private void initUI() {
 		LinearLayout layoutRunning = (LinearLayout)findViewById(R.id.barbutton1);
 		LinearLayout layoutWalking = (LinearLayout)findViewById(R.id.barbutton2);
 		LinearLayout layoutSitting = (LinearLayout)findViewById(R.id.barbutton3);
 		LinearLayout layoutClimbingUp = (LinearLayout)findViewById(R.id.barbutton4);
 		LinearLayout layoutClimbingDown = (LinearLayout)findViewById(R.id.barbutton5);
-		
+
 		runningBar1 = (ProgressBar)layoutRunning.findViewById(R.id.indicator1);
 		runningBar2 = (ProgressBar)layoutRunning.findViewById(R.id.indicator2);
 		runningBar3 = (ProgressBar)layoutRunning.findViewById(R.id.indicator3);
 		buttonRunning = (Button)layoutRunning.findViewById(R.id.btn_start_stop);
-		
+
 		walkingBar1 = (ProgressBar)layoutWalking.findViewById(R.id.indicator1);
 		walkingBar2 = (ProgressBar)layoutWalking.findViewById(R.id.indicator2);
 		walkingBar3 = (ProgressBar)layoutWalking.findViewById(R.id.indicator3);
 		buttonWalking = (Button)layoutWalking.findViewById(R.id.btn_start_stop);
-		
+
 		sittingBar1 = (ProgressBar)layoutSitting.findViewById(R.id.indicator1);
 		sittingBar2 = (ProgressBar)layoutSitting.findViewById(R.id.indicator2);
 		sittingBar3 = (ProgressBar)layoutSitting.findViewById(R.id.indicator3);
 		buttonSitting = (Button)layoutSitting.findViewById(R.id.btn_start_stop);
-		
+
 		climbingUpBar1 = (ProgressBar)layoutClimbingUp.findViewById(R.id.indicator1);
 		climbingUpBar2 = (ProgressBar)layoutClimbingUp.findViewById(R.id.indicator2);
 		climbingUpBar3 = (ProgressBar)layoutClimbingUp.findViewById(R.id.indicator3);
 		buttonclimbingUp = (Button)layoutClimbingUp.findViewById(R.id.btn_start_stop);
-		
+
 		climbingDownBar1 = (ProgressBar)layoutClimbingDown.findViewById(R.id.indicator1);
 		climbingDownBar2 = (ProgressBar)layoutClimbingDown.findViewById(R.id.indicator2);
 		climbingDownBar3 = (ProgressBar)layoutClimbingDown.findViewById(R.id.indicator3);
 		buttonClimbingDown = (Button)layoutClimbingDown.findViewById(R.id.btn_start_stop);
-		
+
 		buttonRunning.setOnClickListener(new View.OnClickListener()
 		{
-			
 			@Override
 			public void onClick(View v)
 			{
-				// TODO Auto-generated method stub
-				
+				if(v.isSelected()) {
+					whichButtonSelected = 0;
+					activityTypeForSensor = getActivityType("Running");
+					AppLog.e("running buton is not selected");
+					enableAllToggleButton();
+					v.setSelected(false);
+					stopRecordingData();
+				} else{
+					whichButtonSelected = 1001;
+					AppLog.e("running buton is selected");
+					disableAllToggleButton();
+					v.setEnabled(true);
+					v.setSelected(true);
+					startRecordingData();
+				}
 			}
 		});
-		
+
 		buttonWalking.setOnClickListener(new View.OnClickListener()
 		{
-			
 			@Override
 			public void onClick(View v)
 			{
-				// TODO Auto-generated method stub
-				
+				if(v.isSelected()) {
+					whichButtonSelected = 0;
+					activityTypeForSensor = getActivityType("Walking");
+					AppLog.e("buttonWalking buton is not selected");
+					enableAllToggleButton();
+					v.setSelected(false);
+					stopRecordingData();
+				} else{
+					whichButtonSelected = 1002;
+					AppLog.e("buttonWalking buton is selected");
+					disableAllToggleButton();
+					v.setEnabled(true);
+					v.setSelected(true);
+					startRecordingData();
+				}
 			}
 		});
-		
+
 		buttonSitting.setOnClickListener(new View.OnClickListener()
 		{
-			
 			@Override
 			public void onClick(View v)
 			{
-				// TODO Auto-generated method stub
-				
+				if(v.isSelected()) {
+					whichButtonSelected = 0;
+					activityTypeForSensor = getActivityType("Sitting");
+					AppLog.e("buttonSitting buton is not selected");
+					enableAllToggleButton();
+					v.setSelected(false);
+					stopRecordingData();
+				} else{
+					whichButtonSelected = 1003;
+					AppLog.e("buttonSitting buton is selected");
+					disableAllToggleButton();
+					v.setEnabled(true);
+					v.setSelected(true);
+					startRecordingData();
+				}
 			}
 		});
-		
-		
+
+
 		buttonclimbingUp.setOnClickListener(new View.OnClickListener()
 		{
-			
 			@Override
 			public void onClick(View v)
 			{
-				// TODO Auto-generated method stub
-				
+				if(v.isSelected()) {
+					whichButtonSelected = 0;
+					activityTypeForSensor = getActivityType("Climb Up");
+					AppLog.e("buttonclimbingUp buton is not selected");
+					enableAllToggleButton();
+					v.setSelected(false);
+					stopRecordingData();
+				} else{
+					whichButtonSelected = 1004;
+					AppLog.e("buttonclimbingUp buton is selected");
+					disableAllToggleButton();
+					v.setEnabled(true);
+					v.setSelected(true);
+					startRecordingData();
+				}
 			}
 		});
-		
-		
+
+
 		buttonClimbingDown.setOnClickListener(new View.OnClickListener()
 		{
-			
+
 			@Override
 			public void onClick(View v)
 			{
-				// TODO Auto-generated method stub
-				
+				if(v.isSelected()) {
+					whichButtonSelected = 0;
+					activityTypeForSensor = getActivityType("Climb Down");
+					AppLog.e("buttonClimbingDown buton is not selected");
+					enableAllToggleButton();
+					v.setSelected(false);
+					stopRecordingData();
+				} else{
+					whichButtonSelected = 1005;
+					AppLog.e("buttonClimbingDown buton is selected");
+					disableAllToggleButton();
+					v.setEnabled(true);
+					v.setSelected(true);
+					startRecordingData();
+				}				
 			}
 		});
+	}
+
+	private void startRecordingData() {
+		if (! MainActivity.this.isRecording)
+		{
+			resetSensorDataFiller();
+			isStartFirstTimeStamp = true;
+		}
+		MainActivity.this.isRecording = true;
+		MainActivity.this.startdate = Calendar.getInstance().getTime();
+		MainActivity.this.enddate = Calendar.getInstance().getTime();
+		startSystemTime = System.currentTimeMillis();
+		duration = "0";
+	}
+
+	private void stopRecordingData() {
+		if (MainActivity.this.isRecording)
+			MainActivity.this.enddate = Calendar.getInstance().getTime();
+		MainActivity.this.isRecording = false;
+		MainActivity.this.isStartFirstTimeStamp = false;
+		try
+		{ 
+			Vector<Points> list = (Vector<Points>) MainActivity.this.csvModelList.clone();
+			String id = BeanController.getLoginBean().getId();
+			if(StringUtils.isEmpty(id) || id.equalsIgnoreCase("0")) {
+				id = (String)AppSettings.getPrefernce(MainActivity.this, null, AppSettings.USER_ID, "");
+			}
+
+			storeAccelData(id, activityTypeForSensor+"", MainActivity.this.startdate.getTime()+"", MainActivity.this.enddate.getTime()+"", list);
+			String logData = sendLoggerData(id, activityTypeForSensor+"", MainActivity.this.startdate.getTime()+"", MainActivity.this.enddate.getTime()+"", list);
+			fetchAccelData(id, activityTypeForSensor);
+
+			enableAllToggleButton();
+		}
+		catch (JSONException localIOException)
+		{
+			localIOException.printStackTrace();
+		}
+	}
+
+	private MyAppDbSQL dbAppDbObj;
+	private void storeAccelData(String userID, String activityType, String startTime, String endTime, Vector<Points> pointsList) {
+		try{
+			if (this.dbAppDbObj == null) {
+				// set database query class object
+				this.dbAppDbObj = new MyAppDbSQL(this);
+			}
+			if(duration.equalsIgnoreCase("0")) {
+				com.rampgreen.acceldatacollector.db.AppLog.e("Duration is 0, so no need to send logged data.");
+				return;
+			}
+			// save the data to the database table
+			boolean dbOpenResult = this.dbAppDbObj.openDbAdapter();
+
+			if (dbOpenResult) {
+				StringBuilder stringBuilder = new StringBuilder(pointBufferFiller);
+				//				boolean blIsSuccessful = this.dbAppDbObj.createLoginEntry("1", "manish", "manis@gmail.com", "pass1", "token1", "1");
+				//				Cursor mEntryCursor = this.dbAppDbObj.fetchAccelDataListEntry(userID, activityType);
+				//				startManagingCursor(mEntryCursor);
+				//				String activity_type = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_ACTIVITY_TYPE));
+				//				String fetchedPartcompleted = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_PART_COMPLETED));
+				//				int fetchedPartcompletedInt = Integer.parseInt(fetchedPartcompleted);
+				//				partCompleted = fetchedPartcompletedInt +1+"";// increment by 1 
+				boolean blIsSuccessful = this.dbAppDbObj.createAccelDataEntryAutoIncrementPartCompletedColumn(userID, stringBuilder.toString(), startTime, endTime, activityType, duration, "20","3","3", "0");
+				boolean dbCloseResult = this.dbAppDbObj.closeDbAdapter();
+				if (!dbCloseResult)
+					throw new Exception(
+							"The database was not successfully closed.");
+				if (blIsSuccessful == false) {
+					//                "There was an issue, and the register entry data was not created.");
+				} else {
+					// bgh 08/26/2010 v1.03 - get the position of the list entry
+					// that was just created
+				}
+			}
+		}catch (Exception e) {
+			AppLog.e(e.getMessage());
+		}
+	}
+
+	private void fetchAccelData(String userID, String activityType) {
+		HashMap<String, String> hashMap = new HashMap<String, String>();
+		try{
+			Cursor mEntryCursor;
+			if (this.dbAppDbObj == null) {
+				// set database query class object
+				this.dbAppDbObj = new MyAppDbSQL(this);
+			}
+
+			// save the data to the database table
+			boolean dbOpenResult = this.dbAppDbObj.openDbAdapter();
+
+			if (dbOpenResult) {
+				mEntryCursor = this.dbAppDbObj.fetchAccelDataListEntry(userID, null);
+				boolean dbCloseResult = this.dbAppDbObj.closeDbAdapter();
+
+				this.startManagingCursor(mEntryCursor);
+				if (!dbCloseResult)
+					throw new Exception("The database was not successfully closed.");
+
+				//				String id = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_ROWID));
+				//				String uID = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_USER_ID));
+				////				String name = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_NAME));
+				//				String activity_type = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_ACTIVITY_TYPE));
+				//				String duration_stored = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_DURATION));
+				//				String part_completed = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_PART_COMPLETED));
+				//							String name = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_ROWID));
+				//							String name = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_ROWID));
+				//				hashMap.put(activity_type, part_completed);
+				//				AppLog.e("AccelTABLE DATA: "+duration_stored + "  ActivityType : "+activity_type);
+
+				if(mEntryCursor.moveToFirst()) {
+					do {
+						String id = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_ROWID));
+						String uID = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_USER_ID));
+						//						String name = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_NAME));
+						String activity_type = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_ACTIVITY_TYPE));
+						String duration_stored = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_DURATION));
+						String part_completed = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_PART_COMPLETED));
+						//							String name = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_ROWID));
+						//							String name = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_ROWID));
+						hashMap.put(activity_type, part_completed);
+						AppLog.e("AccelTABLE DATA: "+duration_stored + "  ActivityType : "+activity_type);
+						progreesFiller(activity_type, part_completed);
+					} while (mEntryCursor.moveToNext());
+				}
+			}// end if (blIsSuccessful == false)
+			AppLog.e("part Completed : "+hashMap.toString());
+		}catch (Exception e) {
+			AppLog.e(e.getMessage());
+		}
+	}
+
+	private void progreesFiller(String activityType, String partCompletedString) {
+		int partCompleted = Integer.parseInt(partCompletedString);
+		if(activityType.equalsIgnoreCase("1")) {
+			progressFillerRunning(partCompleted);
+		} else if(activityType.equalsIgnoreCase("2")) {
+			progressFillerWalking(partCompleted);
+		} else if(activityType.equalsIgnoreCase("3")) {
+			progressFillerSitting(partCompleted);
+		} else if(activityType.equalsIgnoreCase("4")) {
+			// because sitting and standin are same 
+		} else if(activityType.equalsIgnoreCase("5")) {
+			progressFillerClimbingUp(partCompleted);
+		} else if(activityType.equalsIgnoreCase("6")) {
+			progressFillerClimbingDown(partCompleted);
+		}
+	}
+
+	private void progressFillerRunning(int partCompleted) {
+		switch (partCompleted) {
+		case 0:
+			runningBar1.setProgress(1);
+			runningBar2.setProgress(1);
+			runningBar3.setProgress(1);
+		case 1:
+			runningBar1.setProgress(100);
+			break;
+		case 2:
+			runningBar1.setProgress(100);
+			runningBar2.setProgress(100);
+			break;
+		case 3:
+			runningBar1.setProgress(100);
+			runningBar2.setProgress(100);
+			runningBar3.setProgress(100);
+			break;
+
+		default:
+			runningBar1.setProgress(100);
+			runningBar2.setProgress(100);
+			runningBar3.setProgress(100);
+			break;
+		}
+	}
+
+	private void progressFillerWalking(int partCompleted) {
+		switch (partCompleted) {
+		case 0:
+			walkingBar1.setProgress(1);
+			walkingBar2.setProgress(1);
+			walkingBar3.setProgress(1);
+			break;
+		case 1:
+			walkingBar1.setProgress(100);
+			break;
+		case 2:
+			walkingBar1.setProgress(100);
+			walkingBar2.setProgress(100);
+			break;
+		case 3:
+			walkingBar1.setProgress(100);
+			walkingBar2.setProgress(100);
+			walkingBar3.setProgress(100);
+			break;
+
+		default:
+			walkingBar1.setProgress(100);
+			walkingBar2.setProgress(100);
+			walkingBar3.setProgress(100);
+			break;
+		}
+	}
+
+	private void progressFillerSitting(int partCompleted) {
+		switch (partCompleted) {
+		case 0:
+			sittingBar1.setProgress(1);
+			sittingBar2.setProgress(1);
+			sittingBar3.setProgress(1);
+			break;
+		case 1:
+			sittingBar1.setProgress(100);
+			break;
+		case 2:
+			sittingBar1.setProgress(100);
+			sittingBar2.setProgress(100);
+			break;
+		case 3:
+			sittingBar1.setProgress(100);
+			sittingBar2.setProgress(100);
+			sittingBar3.setProgress(100);
+			break;
+
+		default:
+			sittingBar1.setProgress(100);
+			sittingBar2.setProgress(100);
+			sittingBar3.setProgress(100);
+			break;
+		}
+	}
+
+	private void progressFillerClimbingUp(int partCompleted) {
+		switch (partCompleted) {
+		case 0:
+			climbingUpBar1.setProgress(1);
+			climbingUpBar2.setProgress(1);
+			climbingUpBar3.setProgress(1);
+			break;
+		case 1:
+			climbingUpBar1.setProgress(100);
+			break;
+		case 2:
+			climbingUpBar1.setProgress(100);
+			climbingUpBar2.setProgress(100);
+			break;
+		case 3:
+			climbingUpBar1.setProgress(100);
+			climbingUpBar2.setProgress(100);
+			climbingUpBar3.setProgress(100);
+			break;
+
+		default:
+			climbingUpBar1.setProgress(100);
+			climbingUpBar2.setProgress(100);
+			climbingUpBar3.setProgress(100);
+			break;
+		}
+	}
+
+	private void progressFillerClimbingDown(int partCompleted) {
+		switch (partCompleted) {
+		case 0:
+			climbingDownBar1.setProgress(1);
+			climbingDownBar1.setProgress(1);
+			climbingDownBar1.setProgress(1);
+			break;
+		case 1:
+			climbingDownBar1.setProgress(100);
+			break;
+		case 2:
+			climbingDownBar1.setProgress(100);
+			climbingDownBar2.setProgress(100);
+			break;
+		case 3:
+			climbingDownBar1.setProgress(100);
+			climbingDownBar2.setProgress(100);
+			climbingDownBar3.setProgress(100);
+			break;
+
+		default:
+			climbingDownBar1.setProgress(100);
+			climbingDownBar2.setProgress(100);
+			climbingDownBar3.setProgress(100);
+			break;
+		}
 	}
 }

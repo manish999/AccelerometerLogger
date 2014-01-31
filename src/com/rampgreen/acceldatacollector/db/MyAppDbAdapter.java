@@ -33,10 +33,10 @@ public class MyAppDbAdapter extends SQLiteOpenHelper {
   private String dbPathToUse = DATABASE_PATH_EXTERNAL;
 
   // change this if the database structure gets changes and needs to be updated.
-  private static final int DATABASE_VERSION = 1;
+  private static final int DATABASE_VERSION = 2;
 
   // db table/field refs
-  protected static final String KEY_ROWID = "_id";
+  public static final String KEY_ROWID = "_id";
 
 //  protected static final String MY_MUSIC_DB_TABLE = "music_table";
 //  protected static final String KEY_ALBUM = "album";
@@ -46,32 +46,32 @@ public class MyAppDbAdapter extends SQLiteOpenHelper {
 //  protected static final String KEY_SONG_TITLE = "song";
 //  protected static final String KEY_NOTES = "entrynotes";
 
-  protected static final String TABLE_CREDENTIAL = "credential_table";
-  protected static final String KEY_USER_ID = "userID";
-  protected static final String KEY_ACCESS_TOKEN = "TOKEN";
-  protected static final String KEY_LOGIN_STATE = "loginstate";
-  protected static final String KEY_EMAIL = "email";
-  protected static final String KEY_NAME = "name";
-  protected static final String KEY_PASSWORD = "password";
+  public static final String TABLE_CREDENTIAL = "credential_table";
+  public static final String KEY_USER_ID = "userID";
+  public static final String KEY_ACCESS_TOKEN = "TOKEN";
+  public static final String KEY_LOGIN_STATE = "loginstate";
+  public static final String KEY_EMAIL = "email";
+  public static final String KEY_NAME = "name";
+  public static final String KEY_PASSWORD = "password";
   
-  protected static final String TABLE_ACCEL_DATA = "accel_data_table";
-//  protected static final String KEY_USER_ID = "userID";
-  protected static final String KEY_XYZ = "xyz";
+  public static final String TABLE_ACCEL_DATA = "accel_data_table";
+//  public static final String KEY_USER_ID = "userID";
+  public static final String KEY_XYZ = "xyz";
 //  protected static final String KEY_Y = "y";
 //  protected static final String KEY_Z = "z";
-  protected static final String KEY_TIMESTAMP_START = "start_time_stamp";
-  protected static final String KEY_TIMESTAMP_END = "end_time_stamp";
-  protected static final String KEY_ACTIVITY_TYPE = "activity_type";
-  protected static final String KEY_DURATION = "duration";
-  protected static final String KEY_PERCENTAGE_COMPLETED = "per_completed";
-  protected static final String KEY_PART_COMPLETED = "part_completed";
-  protected static final String KEY_TOTAL_PART = "total_part";
-  protected static final String KEY_SEND_DATA_CLOUD = "send_Cloud_state";
+  public static final String KEY_TIMESTAMP_START = "start_time_stamp";
+  public static final String KEY_TIMESTAMP_END = "end_time_stamp";
+  public static final String KEY_ACTIVITY_TYPE = "activity_type";
+  public static final String KEY_DURATION = "duration";
+  public static final String KEY_PERCENTAGE_COMPLETED = "per_completed";
+  public static final String KEY_PART_COMPLETED = "part_completed";
+  public static final String KEY_TOTAL_PART = "total_part";
+  public static final String KEY_SEND_DATA_CLOUD = "send_Cloud_state";
   
-  protected static final String MY_PREFS_DB_TABLE = "myappprefs";
-  protected static final String KEY_PREFNAME = "prefname";
-  protected static final String KEY_PREFVALUE = "prefvalue";
-  protected static final String KEY_PREFDESCR = "prefdescr";
+  public static final String MY_PREFS_DB_TABLE = "myappprefs";
+  public static final String KEY_PREFNAME = "prefname";
+  public static final String KEY_PREFVALUE = "prefvalue";
+  public static final String KEY_PREFDESCR = "prefdescr";
 
   private static final String TAG = "MyAppDbAdapter";
 

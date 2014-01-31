@@ -15,6 +15,16 @@
                    
     </shape>
 </item>
+
+<item android:state_selected="true" 
+    android:drawable="@drawable/stop"> <!-- pressed -->   
+</item>
+<item android:state_selected="false" 
+    android:drawable="@drawable/start"> <!-- pressed -->   
+</item>
+<item android:state_enabled="false" 
+    android:drawable="@drawable/start_disable"> <!-- pressed -->   
+</item>
 <item>
     <shape>
         <gradient

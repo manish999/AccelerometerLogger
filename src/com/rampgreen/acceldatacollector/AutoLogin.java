@@ -2,6 +2,7 @@ package com.rampgreen.acceldatacollector;
 
 import org.json.JSONObject;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -122,6 +123,7 @@ public class AutoLogin implements Response.Listener<JSONObject>, Response.ErrorL
 			AppSettings.setPreference(mContext, null, AppSettings.USER_ID, login.getId());
 			// on success , call Main screen
 			intent = new Intent(mContext, MainActivity.class);
+			intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 //			intent.putExtra(Constants.BUNDLE_KEY_USERS, userBean);
 			mContext.startActivity(intent);
 			// to close the activity

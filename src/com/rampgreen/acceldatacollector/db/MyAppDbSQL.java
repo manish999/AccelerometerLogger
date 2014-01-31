@@ -25,7 +25,7 @@ public class MyAppDbSQL {
 	/**
 	 * MyAppDbSQL Class Constructor
 	 */
-	protected MyAppDbSQL(Context ctxContext) {
+	public MyAppDbSQL(Context ctxContext) {
 		try {
 			this.ctxContext = ctxContext;
 		} catch (Exception error) {
@@ -47,7 +47,7 @@ public class MyAppDbSQL {
 	 * @return String
 	 * 
 	 */
-	protected String listOrderByOpts(int intOrderByOpt) {
+	public String listOrderByOpts(int intOrderByOpt) {
 		switch (intOrderByOpt) {
 		//    case 0:
 		//      return MyAppDbAdapter.KEY_ALBUM + " ASC";
@@ -79,7 +79,7 @@ public class MyAppDbSQL {
 		return MyAppDbAdapter.KEY_ROWID + " ASC";
 	}// end listOrderByOpts
 
-	protected boolean openDbAdapter() throws Exception {
+	public boolean openDbAdapter() throws Exception {
 		boolean isOpen = false;
 
 		try {
@@ -105,7 +105,7 @@ public class MyAppDbSQL {
 		return isOpen;
 	}
 
-	protected boolean closeDbAdapter() throws Exception {
+	public boolean closeDbAdapter() throws Exception {
 		boolean isClosed = false;
 
 		try {
@@ -142,7 +142,7 @@ public class MyAppDbSQL {
 	 * @throws SQLException
 	 *           if entry could not be found/retrieved
 	 */
-	protected Cursor fetchLoginDataAll(int intSortOpt) throws SQLException {
+	public Cursor fetchLoginDataAll(int intSortOpt) throws SQLException {
 		String strOrderBy = "";
 		Cursor mMusicCursor = null;
 
@@ -190,7 +190,7 @@ public class MyAppDbSQL {
 	 * @throws SQLException
 	 *           if entry could not be found/retrieved
 	 */
-	protected Cursor fetchAccelDataAll(int intSortOpt) throws SQLException {
+	public Cursor fetchAccelDataAll(int intSortOpt) throws SQLException {
 		String strOrderBy = "";
 		Cursor mMusicCursor = null;
 
@@ -198,7 +198,7 @@ public class MyAppDbSQL {
 			strOrderBy = listOrderByOpts(intSortOpt);
 
 			mMusicCursor = this.sqliteDBObj.query(MyAppDbAdapter.TABLE_ACCEL_DATA,
-					new String[] { MyAppDbAdapter.KEY_ROWID, MyAppDbAdapter.KEY_XYZ,
+					new String[] { MyAppDbAdapter.KEY_ROWID, MyAppDbAdapter.KEY_USER_ID, MyAppDbAdapter.KEY_XYZ,
 					MyAppDbAdapter.KEY_TIMESTAMP_START, MyAppDbAdapter.KEY_TIMESTAMP_END,
 					MyAppDbAdapter.KEY_ACTIVITY_TYPE, MyAppDbAdapter.KEY_DURATION,
 					MyAppDbAdapter.KEY_PERCENTAGE_COMPLETED, MyAppDbAdapter.KEY_PART_COMPLETED,
@@ -238,25 +238,25 @@ public class MyAppDbSQL {
 	 * @throws SQLException
 	 *           if entry could not be found/retrieved
 	 *           
-	 *            protected static final String KEY_XYZ = "xyz";
-//  protected static final String KEY_Y = "y";
-//  protected static final String KEY_Z = "z";
-  protected static final String KEY_TIMESTAMP_START = "start_time_stamp";
-  protected static final String KEY_TIMESTAMP_END = "end_time_stamp";
-  protected static final String KEY_ACTIVITY_TYPE = "activity_type";
-  protected static final String KEY_DURATION = "duration";
-  protected static final String KEY_PERCENTAGE_COMPLETED = "per_completed";
-  protected static final String KEY_PART_COMPLETED = "part_completed";
-  protected static final String KEY_TOTAL_PART = "total_part";
-  protected static final String KEY_SEND_DATA_CLOUD = "send_Cloud_state";
+	 *            public static final String KEY_XYZ = "xyz";
+//  public static final String KEY_Y = "y";
+//  public static final String KEY_Z = "z";
+  public static final String KEY_TIMESTAMP_START = "start_time_stamp";
+  public static final String KEY_TIMESTAMP_END = "end_time_stamp";
+  public static final String KEY_ACTIVITY_TYPE = "activity_type";
+  public static final String KEY_DURATION = "duration";
+  public static final String KEY_PERCENTAGE_COMPLETED = "per_completed";
+  public static final String KEY_PART_COMPLETED = "part_completed";
+  public static final String KEY_TOTAL_PART = "total_part";
+  public static final String KEY_SEND_DATA_CLOUD = "send_Cloud_state";
 	 */
-	protected Cursor fetchAccelDataListEntry(long rowId) throws SQLException {
+	public Cursor fetchAccelDataListEntry(long rowId) throws SQLException {
 
 		Cursor mCursor = null;
 
 		try {
 			mCursor = this.sqliteDBObj.query(true, MyAppDbAdapter.TABLE_ACCEL_DATA,
-					new String[] { MyAppDbAdapter.KEY_ROWID, MyAppDbAdapter.KEY_XYZ,
+					new String[] { MyAppDbAdapter.KEY_ROWID, MyAppDbAdapter.KEY_USER_ID, MyAppDbAdapter.KEY_XYZ,
 					MyAppDbAdapter.KEY_TIMESTAMP_START, MyAppDbAdapter.KEY_TIMESTAMP_END,
 					MyAppDbAdapter.KEY_ACTIVITY_TYPE, MyAppDbAdapter.KEY_DURATION,
 					MyAppDbAdapter.KEY_PERCENTAGE_COMPLETED, MyAppDbAdapter.KEY_PART_COMPLETED,
@@ -291,8 +291,65 @@ public class MyAppDbSQL {
 		}// end try/catch (Exception error)
 	}// end fetchListEntry(long rowId)
 
+	public Cursor fetchAccelDataListEntry(String userId, String activityType) throws SQLException {
+		Cursor mCursor = null;
+		try {
+			if(activityType == null) {
+				mCursor = this.sqliteDBObj.query(true, MyAppDbAdapter.TABLE_ACCEL_DATA,
+						new String[] { MyAppDbAdapter.KEY_ROWID, MyAppDbAdapter.KEY_USER_ID, MyAppDbAdapter.KEY_XYZ,
+						MyAppDbAdapter.KEY_TIMESTAMP_START, MyAppDbAdapter.KEY_TIMESTAMP_END,
+						MyAppDbAdapter.KEY_ACTIVITY_TYPE, MyAppDbAdapter.KEY_DURATION,
+						MyAppDbAdapter.KEY_PERCENTAGE_COMPLETED, 
+						"MAX("+MyAppDbAdapter.KEY_PART_COMPLETED+") "+MyAppDbAdapter.KEY_PART_COMPLETED,
+						MyAppDbAdapter.KEY_TOTAL_PART,
+						MyAppDbAdapter.KEY_PERCENTAGE_COMPLETED }, MyAppDbAdapter.KEY_USER_ID + "="
+								+ userId, null, MyAppDbAdapter.KEY_ACTIVITY_TYPE, null, null, null);
+			} else {
+				mCursor = this.sqliteDBObj.query(true, MyAppDbAdapter.TABLE_ACCEL_DATA,
+						new String[] { MyAppDbAdapter.KEY_ROWID, MyAppDbAdapter.KEY_USER_ID, MyAppDbAdapter.KEY_XYZ,
+						MyAppDbAdapter.KEY_TIMESTAMP_START, MyAppDbAdapter.KEY_TIMESTAMP_END,
+						MyAppDbAdapter.KEY_ACTIVITY_TYPE, MyAppDbAdapter.KEY_DURATION,
+						MyAppDbAdapter.KEY_PERCENTAGE_COMPLETED, 
+						"MAX("+MyAppDbAdapter.KEY_PART_COMPLETED+") "+MyAppDbAdapter.KEY_PART_COMPLETED,
+						MyAppDbAdapter.KEY_TOTAL_PART,
+						MyAppDbAdapter.KEY_PERCENTAGE_COMPLETED }, MyAppDbAdapter.KEY_USER_ID + "="
+								+ userId+" and "+MyAppDbAdapter.KEY_ACTIVITY_TYPE + "="
+								+ activityType, null, MyAppDbAdapter.KEY_ACTIVITY_TYPE, null, null, null);
 
-	protected Cursor fetchLoginListEntry(long rowId) throws SQLException {
+				//select activity_type, max(part_completed) from accel_data_table  group by activity_type;
+
+			}
+			//			String sql = "select activity_type, max(part_completed) from accel_data_table  group by activity_type";
+			//			this.sqliteDBObj.rawQuery(strSQL, null);
+			if (mCursor != null) {
+				mCursor.moveToFirst();
+
+				return mCursor;
+			} else {
+				return null;
+			}// end if (mCursor != null)
+		} catch (SQLException error) {
+			//      MyErrorLog<SQLException> errExcpError = new MyErrorLog<SQLException>(
+			//          this.ctxContext);
+			//      errExcpError.addToLogFile(error, "MyAppDbAdapter.fetchListEntry",
+			//          "ListEntry query");
+			//      errExcpError = null;
+
+			return null;
+		}// end try/catch (SQLException error)
+		catch (Exception error) {
+			//      MyErrorLog<Exception> errExcpError = new MyErrorLog<Exception>(
+			//          this.ctxContext);
+			//      errExcpError.addToLogFile(error, "MyAppDbAdapter.fetchListEntry",
+			//          "ListEntry query");
+			//      errExcpError = null;
+
+			return null;
+		}// end try/catch (Exception error)
+	}// end fetchListEntry(long rowId)
+
+
+	public Cursor fetchLoginListEntry(long rowId) throws SQLException {
 
 		Cursor mCursor = null;
 
@@ -343,7 +400,7 @@ public class MyAppDbSQL {
 	 * @throws SQLException
 	 *           if entry could not be found/retrieved
 	 */
-	protected Cursor exportTableQuery(String strTableName, String strOrderBy) {
+	public Cursor exportTableQuery(String strTableName, String strOrderBy) {
 		Cursor mMusicCursor = null;
 
 		try {
@@ -409,7 +466,7 @@ public class MyAppDbSQL {
 	//  + " TEXT NOT NULL DEFAULT '', "
 	//  + KEY_SEND_DATA_CLOUD
 	//  + " TEXT NOT NULL DEFAULT '');";//, " + 
-	protected Boolean createAccelDataEntry(String uid, String xyzData, String timeStampStart,
+	public Boolean createAccelDataEntry(String uid, String xyzData, String timeStampStart,
 			String TimtStampEnd, String ActivityType,  String duration, String percentageCompleted, String partCompleted,
 			String totalPart, String sentDataToCloudFlag) {
 		boolean blIsSuccessful = false;
@@ -459,6 +516,68 @@ public class MyAppDbSQL {
 		return blIsSuccessful;
 	}// end createMusicEntry
 
+	public Boolean createAccelDataEntryAutoIncrementPartCompletedColumn(String uid, String xyzData, String timeStampStart,
+			String TimtStampEnd, String ActivityType,  String duration, String percentageCompleted, String partCompleted,
+			String totalPart, String sentDataToCloudFlag) {
+		boolean blIsSuccessful = false;
+
+		this.sqliteDBObj.beginTransaction();
+		try {
+
+			Cursor mEntryCursor = fetchAccelDataListEntry(uid, ActivityType);
+
+			if (mEntryCursor != null && mEntryCursor.getCount() > 0) {
+				mEntryCursor.moveToFirst();
+				String activity_type = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_ACTIVITY_TYPE));
+				String fetchedPartcompleted = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_PART_COMPLETED));
+				int fetchedPartcompletedInt = Integer.parseInt(fetchedPartcompleted);
+				partCompleted = fetchedPartcompletedInt +1+"";// increment by 1 
+			} else{
+				partCompleted = "1";
+			}
+			ContentValues initialValues = new ContentValues();
+
+			initialValues.put(MyAppDbAdapter.KEY_USER_ID, uid);
+			initialValues.put(MyAppDbAdapter.KEY_XYZ, xyzData);
+			initialValues.put(MyAppDbAdapter.KEY_TIMESTAMP_START, timeStampStart);
+			initialValues.put(MyAppDbAdapter.KEY_TIMESTAMP_END, TimtStampEnd);
+			initialValues.put(MyAppDbAdapter.KEY_ACTIVITY_TYPE, ActivityType);
+			initialValues.put(MyAppDbAdapter.KEY_DURATION, duration);
+			initialValues.put(MyAppDbAdapter.KEY_PERCENTAGE_COMPLETED, percentageCompleted);
+			initialValues.put(MyAppDbAdapter.KEY_PART_COMPLETED, partCompleted);
+			initialValues.put(MyAppDbAdapter.KEY_TOTAL_PART, totalPart);
+			initialValues.put(MyAppDbAdapter.KEY_SEND_DATA_CLOUD, sentDataToCloudFlag);
+
+			blIsSuccessful = (this.sqliteDBObj.insert(
+					MyAppDbAdapter.TABLE_ACCEL_DATA, null, initialValues) != -1);
+
+			if (blIsSuccessful == true) {
+				this.sqliteDBObj.setTransactionSuccessful();
+			}
+		}// end try
+		catch (SQLException error) {
+			//      MyErrorLog<SQLException> errExcpError = new MyErrorLog<SQLException>(
+			//          this.ctxContext);
+			//      errExcpError.addToLogFile(error, "MyAppDbAdapter.createMusicEntry",
+			//          "creating music entry");
+			//      errExcpError = null;
+			blIsSuccessful = false;
+		}// end try/catch (Exception error)
+		catch (Exception error) {
+			//      MyErrorLog<Exception> errExcpError = new MyErrorLog<Exception>(
+			//          this.ctxContext);
+			//      errExcpError.addToLogFile(error, "MyAppDbAdapter.createMusicEntry",
+			//          "creating music entry");
+			//      errExcpError = null;
+			blIsSuccessful = false;
+		}// end try/catch (Exception error)
+		finally {
+			this.sqliteDBObj.endTransaction();
+		}
+
+		return blIsSuccessful;
+	}// end createMusicE
+
 	/**
 	 * updateMusicEntry: Updates an existing entry in the database table
 	 * 
@@ -466,7 +585,7 @@ public class MyAppDbSQL {
 	 * @throws SQLException
 	 *           if entry could not be found/retrieved
 	 */
-	protected boolean updateAccelDataEntry(Long rowId, String uid, String xyzData, String timeStampStart,
+	public boolean updateAccelDataEntry(Long rowId, String uid, String xyzData, String timeStampStart,
 			String TimtStampEnd, String ActivityType,  String duration, String percentageCompleted, String partCompleted,
 			String totalPart, String sentDataToCloudFlag) {
 		boolean blIsSuccessful = false;
@@ -488,7 +607,7 @@ public class MyAppDbSQL {
 			initialValues.put(MyAppDbAdapter.KEY_SEND_DATA_CLOUD, sentDataToCloudFlag);
 
 			blIsSuccessful = (this.sqliteDBObj.update(
-					MyAppDbAdapter.TABLE_CREDENTIAL, initialValues, MyAppDbAdapter.KEY_ROWID
+					MyAppDbAdapter.TABLE_ACCEL_DATA, initialValues, MyAppDbAdapter.KEY_ROWID
 					+ "=" + rowId, null) != -1);
 
 			if (blIsSuccessful == true) {
@@ -527,14 +646,14 @@ public class MyAppDbSQL {
 	 * @throws SQLException
 	 *           if the SQL scripts encounter issues
 	 */
-	protected boolean deleteAccelDataEntries() throws SQLException {
+	public boolean deleteAccelDataEntries() throws SQLException {
 		// delete entries
 		boolean blIsSuccessful = false;
 
 		this.sqliteDBObj.beginTransaction();
 		try {
 			blIsSuccessful = this.sqliteDBObj.delete(
-					MyAppDbAdapter.TABLE_CREDENTIAL, "1", null) > 0;
+					MyAppDbAdapter.TABLE_ACCEL_DATA, "1", null) > 0;
 					if (blIsSuccessful == true) {
 						this.sqliteDBObj.setTransactionSuccessful();
 					}
@@ -573,7 +692,7 @@ public class MyAppDbSQL {
 	 * @throws SQLException
 	 *           if the SQL scripts encounter issues
 	 */
-	protected boolean deleteAccelDataEntry(long rowId) throws SQLException {
+	public boolean deleteAccelDataEntry(long rowId) throws SQLException {
 		// delete a single music entry in the music table
 		boolean blIsSuccessful = false;
 
@@ -585,7 +704,7 @@ public class MyAppDbSQL {
 
 			if (crsrListRowData.getCount() >= 0) {
 				blIsSuccessful = this.sqliteDBObj.delete(
-						MyAppDbAdapter.TABLE_CREDENTIAL, MyAppDbAdapter.KEY_ROWID + "="
+						MyAppDbAdapter.TABLE_ACCEL_DATA, MyAppDbAdapter.KEY_ROWID + "="
 								+ rowId, null) > 0;
 			} else {
 				blIsSuccessful = true;
@@ -630,7 +749,7 @@ public class MyAppDbSQL {
 	 * @throws SQLException
 	 *           if entry could not be found/retrieved
 	 */
-	protected Boolean createLoginEntry(String uid, String name, String email,
+	public Boolean createLoginEntry(String uid, String name, String email,
 			String password, String accessToken,  String loginState) {
 		boolean blIsSuccessful = false;
 
@@ -682,7 +801,7 @@ public class MyAppDbSQL {
 	 * @throws SQLException
 	 *           if entry could not be found/retrieved
 	 */
-	protected boolean updateLoginEntry(Long rowId, String name, String email,
+	public boolean updateLoginEntry(Long rowId, String name, String email,
 			String password, String accessToken,  String loginState) {
 		boolean blIsSuccessful = false;
 
@@ -737,7 +856,7 @@ public class MyAppDbSQL {
 	 * @throws SQLException
 	 *           if the SQL scripts encounter issues
 	 */
-	protected boolean deleteLoginEntries() throws SQLException {
+	public boolean deleteLoginEntries() throws SQLException {
 		// delete entries
 		boolean blIsSuccessful = false;
 
@@ -783,7 +902,7 @@ public class MyAppDbSQL {
 	 * @throws SQLException
 	 *           if the SQL scripts encounter issues
 	 */
-	protected boolean deleteLoginEntry(long rowId) throws SQLException {
+	public boolean deleteLoginEntry(long rowId) throws SQLException {
 		// delete a single music entry in the music table
 		boolean blIsSuccessful = false;
 

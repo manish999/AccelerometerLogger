@@ -11,7 +11,7 @@ public class Constants
 
 	public static final String ACCEL_ACTIVITY_RUNNING = "1";
 	public static final String ACCEL_ACTIVITY_WALKING = "2";
-	public static final String ACCEL_ACTIVITY_SITTING = "3";
+	public static final String ACCEL_ACTIVITY_SITTING = "3";// sitting and sleeping both are same
 	public static final String ACCEL_ACTIVITY_SLEEPING = "4";
 	public static final String ACCEL_ACTIVITY_CLIMBING_UP = "5";
 	public static final String ACCEL_ACTIVITY_CLIMBING_DOWN = "6";

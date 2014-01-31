@@ -17,9 +17,6 @@ public class TestDbActivity extends Activity
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-
-
-
 	}
 
 	@Override
