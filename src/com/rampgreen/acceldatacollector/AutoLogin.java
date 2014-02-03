@@ -121,6 +121,7 @@ public class AutoLogin implements Response.Listener<JSONObject>, Response.ErrorL
 			AppLog.logString(response.toString());
 			// store userID  
 			AppSettings.setPreference(mContext, null, AppSettings.USER_ID, login.getId());
+			AppSettings.setPreference(mContext, null, AppSettings.USER_NAME, login.getUserName());
 			// on success , call Main screen
 			intent = new Intent(mContext, MainActivity.class);
 			intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);

@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.Menu;
 
 import com.rampgreen.acceldatacollector.R;
+import com.rampgreen.acceldatacollector.util.AppLog;
 
 public class TestDbActivity extends Activity
 {

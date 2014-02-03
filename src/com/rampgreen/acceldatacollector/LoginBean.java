@@ -37,7 +37,7 @@ public class LoginBean extends GeneralData implements Populator{
 		// {"code":"200","message":"Success","user":{"id":"2","username":"paramgir@gmail.com","firstname":"param","lastname":"gir","gender":"F"}}
 		JSONObject userJsonObj = jsonObject.optJSONObject("user");
 		id = userJsonObj.optString("id", "");
-		userName = jsonObject.optString("username", "");
+		userName = jsonObject.optString("firstname", "");
 	}
 
 	public String getId()

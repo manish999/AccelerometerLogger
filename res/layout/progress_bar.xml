@@ -7,21 +7,21 @@
 
     <ProgressBar
         android:id="@+id/indicator1"
-        android:layout_marginTop="5dp"
         style="@android:style/Widget.ProgressBar.Horizontal"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:layout_marginTop="5dp"
         android:layout_weight="1"
         android:max="100"
         android:progress="1"
         android:progressDrawable="@drawable/bar" />
 
     <ProgressBar
-        android:layout_marginTop="5dp"
         android:id="@+id/indicator2"
         style="@android:style/Widget.ProgressBar.Horizontal"
         android:layout_width="wrap_content"
-       android:layout_height="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="5dp"
         android:layout_toRightOf="@+id/indicator1"
         android:layout_weight="1"
         android:max="100"
@@ -29,25 +29,35 @@
         android:progressDrawable="@drawable/bar" />
 
     <ProgressBar
-        android:layout_marginTop="5dp"
         android:id="@+id/indicator3"
         style="@android:style/Widget.ProgressBar.Horizontal"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:layout_marginTop="5dp"
         android:layout_toRightOf="@+id/indicator2"
         android:layout_weight="1"
         android:max="100"
         android:progress="1"
         android:progressDrawable="@drawable/bar" />
 
+    <TextView
+        android:id="@+id/txtPartCompleted"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginLeft="2dp"
+        android:text="0/3"
+        android:textAppearance="?android:textAppearanceSmall"
+        android:textColor="@color/gray_heavy" />
+
     <Button
         android:id="@+id/btn_start_stop"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="30dp"
+        android:layout_marginLeft="20dp"
         android:layout_weight="3"
-        android:enabled="true"
         android:background="@drawable/button_start_stop"
+        android:enabled="true"
         android:textColor="@android:color/black" />
 
 </LinearLayout>

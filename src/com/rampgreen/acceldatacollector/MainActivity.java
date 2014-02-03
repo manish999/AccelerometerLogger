@@ -34,9 +34,8 @@ import com.rampgreen.acceldatacollector.db.MyAppDbSQL;
 import com.rampgreen.acceldatacollector.util.AppLog;
 import com.rampgreen.acceldatacollector.util.AppSettings;
 import com.rampgreen.acceldatacollector.util.StringUtils;
+import com.rampgreen.acceldatacollector.util.WidgetUtil;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -47,7 +46,7 @@ import java.util.Vector;
 public class MainActivity extends Activity  implements SensorEventListener, Listener, ErrorListener
 {
 	private int whichButtonSelected = 0;
-	
+
 	private static final String COMMA = "," ;
 	private SensorManager mSensorManager;
 	private Sensor mAccelerometer;
@@ -59,7 +58,6 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 	private Date enddate;
 	private Date startdate;
 	private Double starttime = Double.valueOf(0.0D);
-	private Vector<Double> times = new Vector();
 	private DecimalFormat df3 = new DecimalFormat("#0.0000");
 	private DecimalFormat df6 = new DecimalFormat("#0.000000");
 	private DecimalFormat df0 = new DecimalFormat("#0");
@@ -70,7 +68,6 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 
 	private Vector<Points> csvModelList = new Vector<Points>();
 
-	ToggleButton selectedButton;
 	int calledActivity;
 
 	@Override
@@ -80,10 +77,8 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		super.onCreate(savedInstanceState);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		setContentView(R.layout.logging_new);
-
 		// initialising the ui element 
 		initUI();
-
 		String userName = (String) AppSettings.getPrefernce(this, null, AppSettings.USER_SELECTED_MAIL_ID, ""); 
 		String password = (String) AppSettings.getPrefernce(this, null, AppSettings.USER_SELECTED_PASSWORD, "");
 
@@ -152,7 +147,9 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		switch (selectedSpeed) {
 		case 0:
 			mSensorManager.registerListener(this, mAccelerometer,
-					SensorManager.SENSOR_DELAY_NORMAL);
+					SensorManager.SENSOR_DELAY_FASTEST);
+//			mSensorManager.registerListener(this, mAccelerometer,
+//					SensorManager.SENSOR_DELAY_NORMAL);
 			break;
 		case 1:
 			mSensorManager.registerListener(this, mAccelerometer,
@@ -170,18 +167,21 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 			mSensorManager.registerListener(this, mAccelerometer,
 					SensorManager.SENSOR_DELAY_FASTEST);
 			break;
-		case 5:
-
-			break;
 
 		default:
 			break;
 		}
+		
 		String userID = BeanController.getLoginBean().getId();
 		if(StringUtils.isEmpty(userID) || userID.equalsIgnoreCase("0")) {
 			userID = (String)AppSettings.getPrefernce(MainActivity.this, null, AppSettings.USER_ID, "");
 		}
 		fetchAccelData(userID, activityTypeForSensor);
+		
+		if(! WidgetUtil.checkInternetConnection(this)) {
+			WidgetUtil.showSettingDialog(this);
+			return;
+		}
 	}
 
 	@Override
@@ -189,21 +189,21 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 	{
 		super.onPause();
 		mSensorManager.unregisterListener(this, mAccelerometer);
-
-		// fetch all activities data 
-		// if user move to another activity 
 		enableAllToggleButton();
-		MainActivity.this.isRecording = false;
-		//		MainActivity.this.cmdrecord.setEnabled(true);
-		//		MainActivity.this.cmdrecord.setBackgroundResource(R.drawable.button_up);
-		//		MainActivity.this.cmdrecord.setText("Start");
-		//		MainActivity.this.cmdstop.setEnabled(false);
-		//		MainActivity.this.cmdresettime.setEnabled(false);
 
-		//		timer.cancel();
-		//		isActive = true;
-		//		exec.shutdownNow();
+		if(isRecording && isStartFirstTimeStamp) {
+			peroformButtonClick();
+		}
+		MainActivity.this.isRecording = false;
 	}
+
+	protected void onStop() {
+		super.onStop();
+		if(mEntryCursor != null)
+		{
+			stopManagingCursor(mEntryCursor);
+		}
+	};
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
@@ -241,18 +241,6 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 	{
 		csvModelList.clear();
 		pointBufferFiller.setLength(0);// more faster than insert and allocate new one
-
-		//	    this.valuesX.clear();
-		//	    this.valuesY.clear();
-		//	    this.valuesZ.clear();
-		//	    this.valuesmag.clear();
-		//	    this.times.clear();
-		//	    this.valuesX.add(Float.valueOf(0.0F));
-		//	    this.valuesY.add(Float.valueOf(0.0F));
-		//	    this.valuesZ.add(Float.valueOf(0.0F));
-		//	    this.valuesmag.add(Float.valueOf(0.0F));
-		//	    this.times.add(Double.valueOf(0.0D));
-
 	}
 
 	private long startSystemTime;
@@ -284,28 +272,17 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		default:
 			break;
 		}
-		
+
 		AppLog.e("performclick  ActivityType:   "+ activityTypeForSensor);
-//		if(activityTypeForSensor.equalsIgnoreCase(Constants.ACCEL_ACTIVITY_RUNNING)) {
-//			buttonRunning.performClick();
-//		} else if(activityTypeForSensor.equalsIgnoreCase(Constants.ACCEL_ACTIVITY_WALKING)) {
-//			buttonWalking.performClick();
-//		} else if(activityTypeForSensor.equalsIgnoreCase(Constants.ACCEL_ACTIVITY_SITTING)) {
-//			buttonSitting.performClick();
-//		} else if(activityTypeForSensor.equalsIgnoreCase(Constants.ACCEL_ACTIVITY_CLIMBING_UP)) {
-//			buttonclimbingUp.performClick();
-//		} else if(activityTypeForSensor.equalsIgnoreCase(Constants.ACCEL_ACTIVITY_CLIMBING_DOWN)) {
-//			buttonClimbingDown.performClick();
-//		}
 	}
 
 	@Override
 	public void onSensorChanged(SensorEvent sensorEvent)
 	{
-		// automatic stop after one second 
+		// automatic stop after one minute 
 		int durationInt = Integer.parseInt(duration);
 		if(durationInt >= 60) {
-			com.rampgreen.acceldatacollector.db.AppLog.e(duration);
+			AppLog.e(duration);
 			isStartFirstTimeStamp = false;
 			isRecording = false;
 			peroformButtonClick();
@@ -316,7 +293,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		if(selectedSpeed == 0) {
 			long now = System.currentTimeMillis();
 			if (now >= startSystemTime + 1000) {
-				com.rampgreen.acceldatacollector.db.AppLog.e(duration);
+				AppLog.e(duration);
 				//                samplingRate = numSamples / ((now - startSystemTime) / 1000.0);
 				startSystemTime = now;
 
@@ -337,8 +314,9 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 				}
 				if(isRecording) {
 					double d = (sensorEvent.timestamp - this.starttime.doubleValue()) / 1000000000.0D;
+					AppLog.e(d+"");
 					duration = df0.format(d)+"";
-					this.txtlogtime.setText("" + this.df0.format(d) + " seconds");
+					this.txtlogtime.setText("" + duration + " seconds");
 				}
 				this.txtsensordata.setText(Html.fromHtml("<b><font color=\"red\">X axis</font></b> : " + this.df3.format(x) + " m/s<sup>2</sup>" + "<br><b><font color=\"green\">Y axis</font></b> : " + this.df3.format(y) + " m/s<sup>2</sup>" + "<br><b><font color=\"blue\">Z axis</font></b> : " + this.df3.format(z) + " m/s<sup>2</sup>"));
 			}
@@ -392,6 +370,10 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		jsonObj.put("points", stringBuilder.toString());
 
 		// get network queue and add request to the queue
+		if(! WidgetUtil.checkInternetConnection(this)) {
+			WidgetUtil.showSettingDialog(this);
+			return "No internet connection";
+		}
 		MyRequestQueue queue = MyVolley.getRequestQueue();
 		Map<String, String> loginParam = QueryHelper.createSensorDataQuery(jsonObj.toString());
 		CustomRequest customRequest = new CustomRequest(Method.POST,
@@ -481,6 +463,12 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		buttonSitting.setEnabled(false);
 		buttonclimbingUp.setEnabled(false);
 		buttonClimbingDown.setEnabled(false);
+
+		buttonRunning.setBackgroundResource(R.drawable.start_disable);
+		buttonWalking.setBackgroundResource(R.drawable.start_disable);
+		buttonSitting.setBackgroundResource(R.drawable.start_disable);
+		buttonclimbingUp.setBackgroundResource(R.drawable.start_disable);
+		buttonClimbingDown.setBackgroundResource(R.drawable.start_disable);
 	}
 
 	private void enableAllToggleButton() {
@@ -489,32 +477,43 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		buttonSitting.setEnabled(true);
 		buttonclimbingUp.setEnabled(true);
 		buttonClimbingDown.setEnabled(true);
+
+		buttonRunning.setBackgroundResource(R.drawable.start);
+		buttonWalking.setBackgroundResource(R.drawable.start);
+		buttonSitting.setBackgroundResource(R.drawable.start);
+		buttonclimbingUp.setBackgroundResource(R.drawable.start);
+		buttonClimbingDown.setBackgroundResource(R.drawable.start);
 	}
 
 	ProgressBar runningBar1; 
 	ProgressBar runningBar2;
 	ProgressBar runningBar3;
 	Button buttonRunning;
+	TextView tvRunning;
 
 	ProgressBar walkingBar1;
 	ProgressBar walkingBar2;
 	ProgressBar walkingBar3;
 	Button buttonWalking;
+	TextView tvWalking;
 
 	ProgressBar sittingBar1;
 	ProgressBar sittingBar2;
 	ProgressBar sittingBar3;
 	Button buttonSitting;
+	TextView tvSitting;
 
 	ProgressBar climbingUpBar1;
 	ProgressBar climbingUpBar2;
 	ProgressBar climbingUpBar3;
 	Button buttonclimbingUp;
+	TextView tvClimbingUp;
 
 	ProgressBar climbingDownBar1;
 	ProgressBar climbingDownBar2;
 	ProgressBar climbingDownBar3;
 	Button buttonClimbingDown;
+	TextView tvClimbingDown;
 
 	private void initUI() {
 		LinearLayout layoutRunning = (LinearLayout)findViewById(R.id.barbutton1);
@@ -527,26 +526,31 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		runningBar2 = (ProgressBar)layoutRunning.findViewById(R.id.indicator2);
 		runningBar3 = (ProgressBar)layoutRunning.findViewById(R.id.indicator3);
 		buttonRunning = (Button)layoutRunning.findViewById(R.id.btn_start_stop);
+		tvRunning = (TextView)layoutRunning.findViewById(R.id.txtPartCompleted);
 
 		walkingBar1 = (ProgressBar)layoutWalking.findViewById(R.id.indicator1);
 		walkingBar2 = (ProgressBar)layoutWalking.findViewById(R.id.indicator2);
 		walkingBar3 = (ProgressBar)layoutWalking.findViewById(R.id.indicator3);
 		buttonWalking = (Button)layoutWalking.findViewById(R.id.btn_start_stop);
+		tvWalking = (TextView)layoutWalking.findViewById(R.id.txtPartCompleted);
 
 		sittingBar1 = (ProgressBar)layoutSitting.findViewById(R.id.indicator1);
 		sittingBar2 = (ProgressBar)layoutSitting.findViewById(R.id.indicator2);
 		sittingBar3 = (ProgressBar)layoutSitting.findViewById(R.id.indicator3);
 		buttonSitting = (Button)layoutSitting.findViewById(R.id.btn_start_stop);
+		tvSitting = (TextView)layoutSitting.findViewById(R.id.txtPartCompleted);
 
 		climbingUpBar1 = (ProgressBar)layoutClimbingUp.findViewById(R.id.indicator1);
 		climbingUpBar2 = (ProgressBar)layoutClimbingUp.findViewById(R.id.indicator2);
 		climbingUpBar3 = (ProgressBar)layoutClimbingUp.findViewById(R.id.indicator3);
 		buttonclimbingUp = (Button)layoutClimbingUp.findViewById(R.id.btn_start_stop);
+		tvClimbingUp = (TextView)layoutClimbingUp.findViewById(R.id.txtPartCompleted);
 
 		climbingDownBar1 = (ProgressBar)layoutClimbingDown.findViewById(R.id.indicator1);
 		climbingDownBar2 = (ProgressBar)layoutClimbingDown.findViewById(R.id.indicator2);
 		climbingDownBar3 = (ProgressBar)layoutClimbingDown.findViewById(R.id.indicator3);
 		buttonClimbingDown = (Button)layoutClimbingDown.findViewById(R.id.btn_start_stop);
+		tvClimbingDown = (TextView)layoutClimbingDown.findViewById(R.id.txtPartCompleted);
 
 		buttonRunning.setOnClickListener(new View.OnClickListener()
 		{
@@ -559,6 +563,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 					AppLog.e("running buton is not selected");
 					enableAllToggleButton();
 					v.setSelected(false);
+					v.setBackgroundResource(R.drawable.start);
 					stopRecordingData();
 				} else{
 					whichButtonSelected = 1001;
@@ -566,6 +571,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 					disableAllToggleButton();
 					v.setEnabled(true);
 					v.setSelected(true);
+					v.setBackgroundResource(R.drawable.stop);
 					startRecordingData();
 				}
 			}
@@ -582,6 +588,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 					AppLog.e("buttonWalking buton is not selected");
 					enableAllToggleButton();
 					v.setSelected(false);
+					v.setBackgroundResource(R.drawable.start);
 					stopRecordingData();
 				} else{
 					whichButtonSelected = 1002;
@@ -589,6 +596,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 					disableAllToggleButton();
 					v.setEnabled(true);
 					v.setSelected(true);
+					v.setBackgroundResource(R.drawable.stop);
 					startRecordingData();
 				}
 			}
@@ -605,6 +613,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 					AppLog.e("buttonSitting buton is not selected");
 					enableAllToggleButton();
 					v.setSelected(false);
+					v.setBackgroundResource(R.drawable.start);
 					stopRecordingData();
 				} else{
 					whichButtonSelected = 1003;
@@ -612,6 +621,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 					disableAllToggleButton();
 					v.setEnabled(true);
 					v.setSelected(true);
+					v.setBackgroundResource(R.drawable.stop);
 					startRecordingData();
 				}
 			}
@@ -629,6 +639,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 					AppLog.e("buttonclimbingUp buton is not selected");
 					enableAllToggleButton();
 					v.setSelected(false);
+					v.setBackgroundResource(R.drawable.start);
 					stopRecordingData();
 				} else{
 					whichButtonSelected = 1004;
@@ -636,6 +647,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 					disableAllToggleButton();
 					v.setEnabled(true);
 					v.setSelected(true);
+					v.setBackgroundResource(R.drawable.stop);
 					startRecordingData();
 				}
 			}
@@ -654,6 +666,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 					AppLog.e("buttonClimbingDown buton is not selected");
 					enableAllToggleButton();
 					v.setSelected(false);
+					v.setBackgroundResource(R.drawable.start);
 					stopRecordingData();
 				} else{
 					whichButtonSelected = 1005;
@@ -661,6 +674,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 					disableAllToggleButton();
 					v.setEnabled(true);
 					v.setSelected(true);
+					v.setBackgroundResource(R.drawable.stop);
 					startRecordingData();
 				}				
 			}
@@ -696,8 +710,6 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 			storeAccelData(id, activityTypeForSensor+"", MainActivity.this.startdate.getTime()+"", MainActivity.this.enddate.getTime()+"", list);
 			String logData = sendLoggerData(id, activityTypeForSensor+"", MainActivity.this.startdate.getTime()+"", MainActivity.this.enddate.getTime()+"", list);
 			fetchAccelData(id, activityTypeForSensor);
-
-			enableAllToggleButton();
 		}
 		catch (JSONException localIOException)
 		{
@@ -713,7 +725,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 				this.dbAppDbObj = new MyAppDbSQL(this);
 			}
 			if(duration.equalsIgnoreCase("0")) {
-				com.rampgreen.acceldatacollector.db.AppLog.e("Duration is 0, so no need to send logged data.");
+				AppLog.e("Duration is 0, so no need to send logged data.");
 				return;
 			}
 			// save the data to the database table
@@ -744,11 +756,11 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 			AppLog.e(e.getMessage());
 		}
 	}
-
+	Cursor mEntryCursor;
 	private void fetchAccelData(String userID, String activityType) {
 		HashMap<String, String> hashMap = new HashMap<String, String>();
 		try{
-			Cursor mEntryCursor;
+
 			if (this.dbAppDbObj == null) {
 				// set database query class object
 				this.dbAppDbObj = new MyAppDbSQL(this);
@@ -790,6 +802,10 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 						AppLog.e("AccelTABLE DATA: "+duration_stored + "  ActivityType : "+activity_type);
 						progreesFiller(activity_type, part_completed);
 					} while (mEntryCursor.moveToNext());
+					if(mEntryCursor != null)
+					{
+						stopManagingCursor(mEntryCursor);
+					}
 				}
 			}// end if (blIsSuccessful == false)
 			AppLog.e("part Completed : "+hashMap.toString());
@@ -821,23 +837,29 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 			runningBar1.setProgress(1);
 			runningBar2.setProgress(1);
 			runningBar3.setProgress(1);
+			tvRunning.setText("0/3");
 		case 1:
 			runningBar1.setProgress(100);
+			tvRunning.setText(partCompleted+"/3");
 			break;
 		case 2:
 			runningBar1.setProgress(100);
 			runningBar2.setProgress(100);
+			tvRunning.setText(partCompleted+"/3");
 			break;
 		case 3:
 			runningBar1.setProgress(100);
 			runningBar2.setProgress(100);
 			runningBar3.setProgress(100);
+			tvRunning.setText(partCompleted+"/3");
+
 			break;
 
 		default:
 			runningBar1.setProgress(100);
 			runningBar2.setProgress(100);
 			runningBar3.setProgress(100);
+			tvRunning.setText("3/3");
 			break;
 		}
 	}
@@ -848,24 +870,29 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 			walkingBar1.setProgress(1);
 			walkingBar2.setProgress(1);
 			walkingBar3.setProgress(1);
+			tvWalking.setText("0/3");
 			break;
 		case 1:
 			walkingBar1.setProgress(100);
+			tvWalking.setText(partCompleted+"/3");
 			break;
 		case 2:
 			walkingBar1.setProgress(100);
 			walkingBar2.setProgress(100);
+			tvWalking.setText(partCompleted+"/3");
 			break;
 		case 3:
 			walkingBar1.setProgress(100);
 			walkingBar2.setProgress(100);
 			walkingBar3.setProgress(100);
+			tvWalking.setText(partCompleted+"/3");
 			break;
 
 		default:
 			walkingBar1.setProgress(100);
 			walkingBar2.setProgress(100);
 			walkingBar3.setProgress(100);
+			tvWalking.setText("3/3");
 			break;
 		}
 	}
@@ -876,24 +903,29 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 			sittingBar1.setProgress(1);
 			sittingBar2.setProgress(1);
 			sittingBar3.setProgress(1);
+			tvSitting.setText("0/3");
 			break;
 		case 1:
 			sittingBar1.setProgress(100);
+			tvSitting.setText(partCompleted+"/3");
 			break;
 		case 2:
 			sittingBar1.setProgress(100);
 			sittingBar2.setProgress(100);
+			tvSitting.setText(partCompleted+"/3");
 			break;
 		case 3:
 			sittingBar1.setProgress(100);
 			sittingBar2.setProgress(100);
 			sittingBar3.setProgress(100);
+			tvSitting.setText(partCompleted+"/3");
 			break;
 
 		default:
 			sittingBar1.setProgress(100);
 			sittingBar2.setProgress(100);
 			sittingBar3.setProgress(100);
+			tvSitting.setText("3/3");
 			break;
 		}
 	}
@@ -904,24 +936,29 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 			climbingUpBar1.setProgress(1);
 			climbingUpBar2.setProgress(1);
 			climbingUpBar3.setProgress(1);
+			tvClimbingUp.setText("0/3");
 			break;
 		case 1:
 			climbingUpBar1.setProgress(100);
+			tvClimbingUp.setText(partCompleted+"/3");
 			break;
 		case 2:
 			climbingUpBar1.setProgress(100);
 			climbingUpBar2.setProgress(100);
+			tvClimbingUp.setText(partCompleted+"/3");
 			break;
 		case 3:
 			climbingUpBar1.setProgress(100);
 			climbingUpBar2.setProgress(100);
 			climbingUpBar3.setProgress(100);
+			tvClimbingUp.setText(partCompleted+"/3");
 			break;
 
 		default:
 			climbingUpBar1.setProgress(100);
 			climbingUpBar2.setProgress(100);
 			climbingUpBar3.setProgress(100);
+			tvClimbingUp.setText("3/3");
 			break;
 		}
 	}
@@ -932,24 +969,29 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 			climbingDownBar1.setProgress(1);
 			climbingDownBar1.setProgress(1);
 			climbingDownBar1.setProgress(1);
+			tvClimbingDown.setText("0/3");
 			break;
 		case 1:
 			climbingDownBar1.setProgress(100);
+			tvClimbingDown.setText(partCompleted+"/3");
 			break;
 		case 2:
 			climbingDownBar1.setProgress(100);
 			climbingDownBar2.setProgress(100);
+			tvClimbingDown.setText(partCompleted+"/3");
 			break;
 		case 3:
 			climbingDownBar1.setProgress(100);
 			climbingDownBar2.setProgress(100);
 			climbingDownBar3.setProgress(100);
+			tvClimbingDown.setText(partCompleted+"/3");
 			break;
 
 		default:
 			climbingDownBar1.setProgress(100);
 			climbingDownBar2.setProgress(100);
 			climbingDownBar3.setProgress(100);
+			tvClimbingDown.setText("3/3");
 			break;
 		}
 	}

@@ -175,6 +175,7 @@ public class RegistrationActivity extends BaseActivity
 			AppLog.logToast(this,  response.toString());
 			// store deviceID for 
 			AppSettings.setPreference(this, null, AppSettings.USER_ID, login.getId());
+			AppSettings.setPreference(this, null, AppSettings.USER_NAME, login.getUserName());
 			// open home activity 
 			Intent intent = new Intent(getApplicationContext(), MainActivity.class);
 			intent.putExtra(Constants.CALLING_ACTIVITY_TYPE, Constants.CALLING_ACTIVITY_REGISTRATION);

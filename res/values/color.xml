@@ -3,4 +3,5 @@
     <color name="red">#ff0000</color>
     <color name="green">#00ff00</color>
     <color name="gray_heavy">#9c9c9c</color>
+    <color name="gray_more_heavy">#5C5C5C</color>
 </resources>

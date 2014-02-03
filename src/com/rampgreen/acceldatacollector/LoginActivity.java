@@ -127,6 +127,7 @@ public class LoginActivity extends BaseActivity
 			AppLog.logString(response.toString());
 			// store userID  
 			AppSettings.setPreference(this, null, AppSettings.USER_ID, login.getId());
+			AppSettings.setPreference(this, null, AppSettings.USER_NAME, login.getUserName());
 			// on success , call Main screen
 			intent = new Intent(getApplicationContext(), MainActivity.class);
 //			intent.putExtra(Constants.BUNDLE_KEY_USERS, userBean);
