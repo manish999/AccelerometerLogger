@@ -11,6 +11,9 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
@@ -22,7 +25,6 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.ToggleButton;
 
 import com.android.volley.Request.Method;
 import com.android.volley.Response.ErrorListener;
@@ -148,8 +150,8 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		case 0:
 			mSensorManager.registerListener(this, mAccelerometer,
 					SensorManager.SENSOR_DELAY_FASTEST);
-//			mSensorManager.registerListener(this, mAccelerometer,
-//					SensorManager.SENSOR_DELAY_NORMAL);
+			//			mSensorManager.registerListener(this, mAccelerometer,
+			//					SensorManager.SENSOR_DELAY_NORMAL);
 			break;
 		case 1:
 			mSensorManager.registerListener(this, mAccelerometer,
@@ -171,13 +173,13 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		default:
 			break;
 		}
-		
+
 		String userID = BeanController.getLoginBean().getId();
 		if(StringUtils.isEmpty(userID) || userID.equalsIgnoreCase("0")) {
 			userID = (String)AppSettings.getPrefernce(MainActivity.this, null, AppSettings.USER_ID, "");
 		}
 		fetchAccelData(userID, activityTypeForSensor);
-		
+
 		if(! WidgetUtil.checkInternetConnection(this)) {
 			WidgetUtil.showSettingDialog(this);
 			return;
@@ -316,7 +318,8 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 					double d = (sensorEvent.timestamp - this.starttime.doubleValue()) / 1000000000.0D;
 					AppLog.e(d+"");
 					duration = df0.format(d)+"";
-					this.txtlogtime.setText("" + duration + " seconds");
+					int reverseTimer = 60 - Integer.parseInt(duration);// to show reverse time from 60.
+					this.txtlogtime.setText("" + reverseTimer + " seconds");
 				}
 				this.txtsensordata.setText(Html.fromHtml("<b><font color=\"red\">X axis</font></b> : " + this.df3.format(x) + " m/s<sup>2</sup>" + "<br><b><font color=\"green\">Y axis</font></b> : " + this.df3.format(y) + " m/s<sup>2</sup>" + "<br><b><font color=\"blue\">Z axis</font></b> : " + this.df3.format(z) + " m/s<sup>2</sup>"));
 			}
@@ -421,8 +424,8 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 	{
 		resetSensorDataFiller();
 		AppLog.e("Volly success"+response.toString());
-		// TODO Auto-generated method stub
-
+		//play sound after completion. 
+		playSound();
 	}
 
 	@Override
@@ -515,6 +518,26 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 	Button buttonClimbingDown;
 	TextView tvClimbingDown;
 
+	private void clickActivityButton(View v, String activityType, int whichButtonSelected) {
+		//		if(v.isSelected()) {
+		//			this.whichButtonSelected = whichButtonSelected;
+		//			activityTypeForSensor = getActivityType(activityType);
+		//			AppLog.e("running buton is not selected");
+		//			enableAllToggleButton();
+		//			v.setSelected(false);
+		//			v.setBackgroundResource(R.drawable.start);
+		//			stopRecordingData();
+		//		} else{
+		//			whichButtonSelected = 1001;
+		//			AppLog.e("running buton is selected");
+		//			disableAllToggleButton();
+		//			v.setEnabled(true);
+		//			v.setSelected(true);
+		//			v.setBackgroundResource(R.drawable.stop);
+		//			startRecordingData();
+		//		}
+	}
+
 	private void initUI() {
 		LinearLayout layoutRunning = (LinearLayout)findViewById(R.id.barbutton1);
 		LinearLayout layoutWalking = (LinearLayout)findViewById(R.id.barbutton2);
@@ -557,6 +580,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 			@Override
 			public void onClick(View v)
 			{
+
 				if(v.isSelected()) {
 					whichButtonSelected = 0;
 					activityTypeForSensor = getActivityType("Running");
@@ -695,8 +719,8 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 	}
 
 	private void stopRecordingData() {
-		if (MainActivity.this.isRecording)
-			MainActivity.this.enddate = Calendar.getInstance().getTime();
+		//		if (MainActivity.this.isRecording)
+		MainActivity.this.enddate = Calendar.getInstance().getTime();
 		MainActivity.this.isRecording = false;
 		MainActivity.this.isStartFirstTimeStamp = false;
 		try
@@ -993,6 +1017,24 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 			climbingDownBar3.setProgress(100);
 			tvClimbingDown.setText("3/3");
 			break;
+		}
+	}
+
+	private void playSound() {
+		try {
+			Uri alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+			if(alert == null){
+				// alert is null, using backup
+				 alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);	
+				if(alert == null){  // I can't see this ever being null (as always have a default notification) but just incase
+					// alert backup is null, using 2nd backup
+					alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);               
+				}
+			}
+			Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), alert);
+			r.play();
+		} catch (Exception e) {
+			AppLog.e(e.getMessage());
 		}
 	}
 }
