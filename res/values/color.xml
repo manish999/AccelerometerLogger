@@ -4,4 +4,5 @@
     <color name="green">#00ff00</color>
     <color name="gray_heavy">#9c9c9c</color>
     <color name="gray_more_heavy">#5C5C5C</color>
+    <color name="bg_chart">#8a8e99</color>
 </resources>

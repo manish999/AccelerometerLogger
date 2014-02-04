@@ -1,5 +1,6 @@
 package com.rampgreen.acceldatacollector;
 
+import org.achartengine.GraphicalView;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -39,6 +40,7 @@ import com.rampgreen.acceldatacollector.util.StringUtils;
 import com.rampgreen.acceldatacollector.util.WidgetUtil;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -67,10 +69,21 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 	boolean isRecording = false;
 	boolean isStartFirstTimeStamp = false;
 	private String duration = "0";
+	private int selectedSpeed = 0;
+	private long startSystemTime;
+	private boolean init;
 
 	private Vector<Points> csvModelList = new Vector<Points>();
 
-	int calledActivity;
+	private int calledActivity;
+	private GraphicalView view;
+
+	private LinearLayout mChartContainer;
+	private ArrayList<Float> xList = new ArrayList<Float>();
+	private ArrayList<Float> yList = new ArrayList<Float>();
+	private ArrayList<Float> zList = new ArrayList<Float>();;
+
+	private Graph mGraph;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -83,6 +96,8 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		initUI();
 		String userName = (String) AppSettings.getPrefernce(this, null, AppSettings.USER_SELECTED_MAIL_ID, ""); 
 		String password = (String) AppSettings.getPrefernce(this, null, AppSettings.USER_SELECTED_PASSWORD, "");
+		mChartContainer = (LinearLayout) findViewById(R.id.chart_containerAcc);
+		mGraph = new Graph(this);
 
 		Bundle bundle = getIntent().getExtras();
 		if(bundle != null) {
@@ -139,7 +154,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		}
 		 **/
 	}
-	int selectedSpeed = 0;
+	
 	@Override
 	protected void onResume()
 	{
@@ -245,8 +260,6 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		pointBufferFiller.setLength(0);// more faster than insert and allocate new one
 	}
 
-	private long startSystemTime;
-
 	@Override
 	public void onAccuracyChanged(Sensor arg0, int arg1)
 	{
@@ -321,7 +334,22 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 					int reverseTimer = 60 - Integer.parseInt(duration);// to show reverse time from 60.
 					this.txtlogtime.setText("" + reverseTimer + " seconds");
 				}
-				this.txtsensordata.setText(Html.fromHtml("<b><font color=\"red\">X axis</font></b> : " + this.df3.format(x) + " m/s<sup>2</sup>" + "<br><b><font color=\"green\">Y axis</font></b> : " + this.df3.format(y) + " m/s<sup>2</sup>" + "<br><b><font color=\"blue\">Z axis</font></b> : " + this.df3.format(z) + " m/s<sup>2</sup>"));
+				// ploting graph
+				xList.add(x);
+				yList.add(y);
+				zList.add(z);
+				mGraph.initData(xList, yList, zList);
+				mGraph.setProperties();
+				if (!init) {
+					view = mGraph.getGraph();
+					mChartContainer.addView(view);
+					init = true;
+				} else {
+					mChartContainer.removeView(view);
+					view = mGraph.getGraph();
+					mChartContainer.addView(view);
+				}
+//				this.txtsensordata.setText(Html.fromHtml("<b><font color=\"red\">X axis</font></b> : " + this.df3.format(x) + " m/s<sup>2</sup>" + "<br><b><font color=\"green\">Y axis</font></b> : " + this.df3.format(y) + " m/s<sup>2</sup>" + "<br><b><font color=\"blue\">Z axis</font></b> : " + this.df3.format(z) + " m/s<sup>2</sup>"));
 			}
 		} else {
 			float x =  sensorEvent.values[0];
@@ -344,6 +372,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 				duration =d+"";
 				this.txtlogtime.setText("" + this.df0.format(d) + " seconds");
 			}
+
 			this.txtsensordata.setText(Html.fromHtml("<b><font color=\"red\">X axis</font></b> : " + this.df3.format(x) + " m/s<sup>2</sup>" + "<br><b><font color=\"green\">Y axis</font></b> : " + this.df3.format(y) + " m/s<sup>2</sup>" + "<br><b><font color=\"blue\">Z axis</font></b> : " + this.df3.format(z) + " m/s<sup>2</sup>"));
 		}
 	}
@@ -1025,7 +1054,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 			Uri alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 			if(alert == null){
 				// alert is null, using backup
-				 alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);	
+				alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);	
 				if(alert == null){  // I can't see this ever being null (as always have a default notification) but just incase
 					// alert backup is null, using 2nd backup
 					alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);               
