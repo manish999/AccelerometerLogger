@@ -1,5 +1,13 @@
 package com.rampgreen.acceldatacollector;
 
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Vector;
+
 import org.achartengine.GraphicalView;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,15 +47,7 @@ import com.rampgreen.acceldatacollector.util.AppSettings;
 import com.rampgreen.acceldatacollector.util.StringUtils;
 import com.rampgreen.acceldatacollector.util.WidgetUtil;
 
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Vector;
-
-public class MainActivity extends Activity  implements SensorEventListener, Listener, ErrorListener
+public class MainActivity extends Activity  implements SensorEventListener, Listener, ErrorListener, Runnable, CustomTimer.CustomTimerCallBack
 {
 	private int whichButtonSelected = 0;
 
@@ -84,6 +84,8 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 	private ArrayList<Float> zList = new ArrayList<Float>();;
 
 	private Graph mGraph;
+	private float sensorX, sensorY, sensorZ;
+	private long sensorTimeStamp;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -154,7 +156,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		}
 		 **/
 	}
-	
+
 	@Override
 	protected void onResume()
 	{
@@ -294,87 +296,107 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 	@Override
 	public void onSensorChanged(SensorEvent sensorEvent)
 	{
-		// automatic stop after one minute 
-		int durationInt = Integer.parseInt(duration);
-		if(durationInt >= 60) {
-			AppLog.e(duration);
-			isStartFirstTimeStamp = false;
-			isRecording = false;
-			peroformButtonClick();
-			duration =  "0";
-			return;
-		}
+		sensorX =  sensorEvent.values[0];
+		sensorY =  sensorEvent.values[1];
+		sensorZ =  sensorEvent.values[2];
+		sensorTimeStamp = sensorEvent.timestamp;
 
-		if(selectedSpeed == 0) {
-			long now = System.currentTimeMillis();
-			if (now >= startSystemTime + 1000) {
-				AppLog.e(duration);
-				//                samplingRate = numSamples / ((now - startSystemTime) / 1000.0);
-				startSystemTime = now;
-
-				float x =  sensorEvent.values[0];
-				float y =  sensorEvent.values[1];
-				float z =  sensorEvent.values[2];
-				long timestamp = sensorEvent.timestamp;
-				// adding the data to the list
-				csvModelList.add(new Points(x,y,z));
-				pointBufferFiller.append(df3.format(x) + COMMA + df3.format(y) + COMMA + df3.format(z) + COMMA);
-
-				if(isStartFirstTimeStamp) {
-					MainActivity.this.startdate = Calendar.getInstance().getTime();
-					this.starttime = Double.valueOf(sensorEvent.timestamp);
-					// start reading from 1st second so leave the 0th reading. 
-					resetSensorDataFiller();
-					isStartFirstTimeStamp = false;
-				}
-				if(isRecording) {
-					double d = (sensorEvent.timestamp - this.starttime.doubleValue()) / 1000000000.0D;
-					AppLog.e(d+"");
-					duration = df0.format(d)+"";
-					int reverseTimer = 60 - Integer.parseInt(duration);// to show reverse time from 60.
-					this.txtlogtime.setText("" + reverseTimer + " seconds");
-				}
-				// ploting graph
-				xList.add(x);
-				yList.add(y);
-				zList.add(z);
-				mGraph.initData(xList, yList, zList);
-				mGraph.setProperties();
-				if (!init) {
-					view = mGraph.getGraph();
-					mChartContainer.addView(view);
-					init = true;
-				} else {
-					mChartContainer.removeView(view);
-					view = mGraph.getGraph();
-					mChartContainer.addView(view);
-				}
-//				this.txtsensordata.setText(Html.fromHtml("<b><font color=\"red\">X axis</font></b> : " + this.df3.format(x) + " m/s<sup>2</sup>" + "<br><b><font color=\"green\">Y axis</font></b> : " + this.df3.format(y) + " m/s<sup>2</sup>" + "<br><b><font color=\"blue\">Z axis</font></b> : " + this.df3.format(z) + " m/s<sup>2</sup>"));
-			}
-		} else {
-			float x =  sensorEvent.values[0];
-			float y =  sensorEvent.values[1];
-			float z =  sensorEvent.values[2];
-			long timestamp = sensorEvent.timestamp;
-			// adding the data to the list
-			csvModelList.add(new Points(x,y,z));
-			pointBufferFiller.append(df3.format(x) + COMMA + df3.format(y) + COMMA + df3.format(z) + COMMA);
-
-			if(isStartFirstTimeStamp) {
-				MainActivity.this.startdate = Calendar.getInstance().getTime();
-				this.starttime = Double.valueOf(sensorEvent.timestamp);
-				// start reading from 1st second so leave the 0th reading. 
-				resetSensorDataFiller();
-				isStartFirstTimeStamp = false;
-			}
-			if(isRecording) {
-				double d = (sensorEvent.timestamp - this.starttime.doubleValue()) / 1000000000.0D;
-				duration =d+"";
-				this.txtlogtime.setText("" + this.df0.format(d) + " seconds");
-			}
-
-			this.txtsensordata.setText(Html.fromHtml("<b><font color=\"red\">X axis</font></b> : " + this.df3.format(x) + " m/s<sup>2</sup>" + "<br><b><font color=\"green\">Y axis</font></b> : " + this.df3.format(y) + " m/s<sup>2</sup>" + "<br><b><font color=\"blue\">Z axis</font></b> : " + this.df3.format(z) + " m/s<sup>2</sup>"));
-		}
+		// ploting graph
+//		xList.add(sensorX);
+//		yList.add(sensorY);
+//		zList.add(sensorZ);
+//		mGraph.initData(xList, yList, zList);
+//		mGraph.setProperties();
+//		if (!init) {
+//			view = mGraph.getGraph();
+//			mChartContainer.addView(view);
+//			init = true;
+//		} else {
+//			mChartContainer.removeView(view);
+//			view = mGraph.getGraph();
+//			mChartContainer.addView(view);
+//		}
+		//		// automatic stop after one minute 
+		//		int durationInt = Integer.parseInt(duration);
+		//		if(durationInt >= 60) {
+		//			AppLog.e(duration);
+		//			isStartFirstTimeStamp = false;
+		//			isRecording = false;
+		//			peroformButtonClick();
+		//			duration =  "0";
+		//			return;
+		//		}
+		//
+		//		if(selectedSpeed == 0) {
+		//			long now = System.currentTimeMillis();
+		//			if (now >= startSystemTime + 1000) {
+		//				AppLog.e(duration);
+		//				//                samplingRate = numSamples / ((now - startSystemTime) / 1000.0);
+		//				startSystemTime = now;
+		//
+		//				float x =  sensorEvent.values[0];
+		//				float y =  sensorEvent.values[1];
+		//				float z =  sensorEvent.values[2];
+		//				long timestamp = sensorEvent.timestamp;
+		//				// adding the data to the list
+		//				csvModelList.add(new Points(x,y,z));
+		//				pointBufferFiller.append(df3.format(x) + COMMA + df3.format(y) + COMMA + df3.format(z) + COMMA);
+		//
+		//				if(isStartFirstTimeStamp) {
+		//					MainActivity.this.startdate = Calendar.getInstance().getTime();
+		//					this.starttime = Double.valueOf(sensorEvent.timestamp);
+		//					// start reading from 1st second so leave the 0th reading. 
+		//					resetSensorDataFiller();
+		//					isStartFirstTimeStamp = false;
+		//				}
+		//				if(isRecording) {
+		//					double d = (sensorEvent.timestamp - this.starttime.doubleValue()) / 1000000000.0D;
+		//					AppLog.e(d+"");
+		//					duration = df0.format(d)+"";
+		//					int reverseTimer = 60 - Integer.parseInt(duration);// to show reverse time from 60.
+		//					this.txtlogtime.setText("" + reverseTimer + " seconds");
+		//				}
+		//				// ploting graph
+		//				xList.add(x);
+		//				yList.add(y);
+		//				zList.add(z);
+		//				mGraph.initData(xList, yList, zList);
+		//				mGraph.setProperties();
+		//				if (!init) {
+		//					view = mGraph.getGraph();
+		//					mChartContainer.addView(view);
+		//					init = true;
+		//				} else {
+		//					mChartContainer.removeView(view);
+		//					view = mGraph.getGraph();
+		//					mChartContainer.addView(view);
+		//				}
+		////				this.txtsensordata.setText(Html.fromHtml("<b><font color=\"red\">X axis</font></b> : " + this.df3.format(x) + " m/s<sup>2</sup>" + "<br><b><font color=\"green\">Y axis</font></b> : " + this.df3.format(y) + " m/s<sup>2</sup>" + "<br><b><font color=\"blue\">Z axis</font></b> : " + this.df3.format(z) + " m/s<sup>2</sup>"));
+		//			}
+		//		} else {
+		//			float x =  sensorEvent.values[0];
+		//			float y =  sensorEvent.values[1];
+		//			float z =  sensorEvent.values[2];
+		//			long timestamp = sensorEvent.timestamp;
+		//			// adding the data to the list
+		//			csvModelList.add(new Points(x,y,z));
+		//			pointBufferFiller.append(df3.format(x) + COMMA + df3.format(y) + COMMA + df3.format(z) + COMMA);
+		//
+		//			if(isStartFirstTimeStamp) {
+		//				MainActivity.this.startdate = Calendar.getInstance().getTime();
+		//				this.starttime = Double.valueOf(sensorEvent.timestamp);
+		//				// start reading from 1st second so leave the 0th reading. 
+		//				resetSensorDataFiller();
+		//				isStartFirstTimeStamp = false;
+		//			}
+		//			if(isRecording) {
+		//				double d = (sensorEvent.timestamp - this.starttime.doubleValue()) / 1000000000.0D;
+		//				duration =d+"";
+		//				this.txtlogtime.setText("" + this.df0.format(d) + " seconds");
+		//			}
+		//
+		//			this.txtsensordata.setText(Html.fromHtml("<b><font color=\"red\">X axis</font></b> : " + this.df3.format(x) + " m/s<sup>2</sup>" + "<br><b><font color=\"green\">Y axis</font></b> : " + this.df3.format(y) + " m/s<sup>2</sup>" + "<br><b><font color=\"blue\">Z axis</font></b> : " + this.df3.format(z) + " m/s<sup>2</sup>"));
+		//		}
 	}
 
 	private String sendLoggerData(String userID, String activityType, String startTime, String endTime, Vector<Points> pointsList) throws JSONException 
@@ -734,12 +756,17 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		});
 	}
 
+	CustomTimer customTimer;
 	private void startRecordingData() {
 		if (! MainActivity.this.isRecording)
 		{
 			resetSensorDataFiller();
 			isStartFirstTimeStamp = true;
 		}
+		customTimer = new CustomTimer(this, 0, 1000);
+		customTimer.setAutomaticCancel(60000);
+		customTimer.start();
+
 		MainActivity.this.isRecording = true;
 		MainActivity.this.startdate = Calendar.getInstance().getTime();
 		MainActivity.this.enddate = Calendar.getInstance().getTime();
@@ -752,6 +779,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		MainActivity.this.enddate = Calendar.getInstance().getTime();
 		MainActivity.this.isRecording = false;
 		MainActivity.this.isStartFirstTimeStamp = false;
+		customTimer.stop();
 		try
 		{ 
 			Vector<Points> list = (Vector<Points>) MainActivity.this.csvModelList.clone();
@@ -1065,5 +1093,50 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		} catch (Exception e) {
 			AppLog.e(e.getMessage());
 		}
+	}
+
+	@Override
+	public void exceuteOnUIThread(boolean isLastCall) {
+		this.isLastCall = isLastCall;
+		runOnUiThread(this);
+	}
+	int totalDuration = 60;
+	boolean isLastCall;
+	int count = 0;
+	@Override
+	public void run() {
+		AppLog.e("totalTimeCall"+ ++count);
+		if(isLastCall) {
+			AppLog.e(duration);
+			this.txtlogtime.setText("" + --totalDuration + " seconds");
+			isStartFirstTimeStamp = false;
+			isRecording = false;
+			peroformButtonClick();
+			duration =  "0";
+			return;
+		}
+		if(selectedSpeed == 0) {
+//			AppLog.e(duration);
+			// adding the data to the list
+			AppLog.e(df3.format(sensorX) + COMMA + df3.format(sensorY) + COMMA + df3.format(sensorZ) + COMMA);
+			csvModelList.add(new Points(sensorX,sensorY,sensorZ));
+			pointBufferFiller.append(df3.format(sensorX) + COMMA + df3.format(sensorY) + COMMA + df3.format(sensorZ) + COMMA);
+
+			if(isStartFirstTimeStamp) {
+				MainActivity.this.startdate = Calendar.getInstance().getTime();
+				this.starttime = Double.valueOf(sensorTimeStamp);
+				AppLog.e("isStartFirstTimeStamp");
+				// start reading from 1st second so leave the 0th reading. 
+				resetSensorDataFiller();
+				isStartFirstTimeStamp = false;
+			}
+			if(isRecording) {
+//				double d = (sensorTimeStamp - this.starttime.doubleValue()) / 1000000000.0D;
+//				AppLog.e(d+"");
+//				duration = df0.format(d)+"";
+//				int reverseTimer = 60 - Integer.parseInt(duration);// to show reverse time from 60.
+				this.txtlogtime.setText("" + --totalDuration + " seconds");
+			}
+		} 
 	}
 }
