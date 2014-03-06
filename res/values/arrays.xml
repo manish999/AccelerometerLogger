@@ -27,5 +27,13 @@
         <item>4</item>
         <!-- <item>5</item> -->
     </string-array>
+    <string-array name="sensor_speed_array_values">
+        <item>1 hertz</item>
+        <item>2 hertz</item>
+        <item>3 hertz</item>
+        <item>4 hertz</item>
+        <item>5 hertz</item>
+        <!-- <item>5</item> -->
+    </string-array>
 
 </resources>

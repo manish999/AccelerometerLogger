@@ -38,14 +38,6 @@ public class MyAppDbAdapter extends SQLiteOpenHelper {
   // db table/field refs
   public static final String KEY_ROWID = "_id";
 
-//  protected static final String MY_MUSIC_DB_TABLE = "music_table";
-//  protected static final String KEY_ALBUM = "album";
-//  protected static final String KEY_ALBUMDATE = "pubdate";
-//  protected static final String KEY_ARTIST = "artist";
-//  protected static final String KEY_GENRE = "genre";
-//  protected static final String KEY_SONG_TITLE = "song";
-//  protected static final String KEY_NOTES = "entrynotes";
-
   public static final String TABLE_CREDENTIAL = "credential_table";
   public static final String KEY_USER_ID = "userID";
   public static final String KEY_ACCESS_TOKEN = "TOKEN";
@@ -55,10 +47,7 @@ public class MyAppDbAdapter extends SQLiteOpenHelper {
   public static final String KEY_PASSWORD = "password";
   
   public static final String TABLE_ACCEL_DATA = "accel_data_table";
-//  public static final String KEY_USER_ID = "userID";
   public static final String KEY_XYZ = "xyz";
-//  protected static final String KEY_Y = "y";
-//  protected static final String KEY_Z = "z";
   public static final String KEY_TIMESTAMP_START = "start_time_stamp";
   public static final String KEY_TIMESTAMP_END = "end_time_stamp";
   public static final String KEY_ACTIVITY_TYPE = "activity_type";
@@ -67,6 +56,12 @@ public class MyAppDbAdapter extends SQLiteOpenHelper {
   public static final String KEY_PART_COMPLETED = "part_completed";
   public static final String KEY_TOTAL_PART = "total_part";
   public static final String KEY_SEND_DATA_CLOUD = "send_Cloud_state";
+  
+  public static final String TABLE_ACTIVITY_SETTING= "accel_data_setting_table";
+  //column would be userID activityType and activityTypeValue 
+  
+  public static final String KEY_SETTING_ACTIVITY_FREQUENCY = "activity_type_frequecy"; 
+  public static final String KEY_SETTING_TOTAL_TIME_PER_ACTIVITY = "totle_time_per_activity"; 
   
   public static final String MY_PREFS_DB_TABLE = "myappprefs";
   public static final String KEY_PREFNAME = "prefname";
@@ -128,6 +123,18 @@ public class MyAppDbAdapter extends SQLiteOpenHelper {
 	      + " TEXT NOT NULL DEFAULT '', "
 	      + KEY_SEND_DATA_CLOUD
 	      + " TEXT NOT NULL DEFAULT '');";//, " + KEY_NOTES + " TEXT);";
+  
+  private static final String DATABASE_ACTIVITY_SETTING_CREATE = "CREATE TABLE IF NOT EXISTS "
+	      + TABLE_ACTIVITY_SETTING
+	      + "(_id INTEGER PRIMARY KEY AUTOINCREMENT, "
+	      + KEY_USER_ID
+	      + " TEXT NOT NULL DEFAULT '', "
+	      + KEY_ACTIVITY_TYPE
+	      + " TEXT NOT NULL DEFAULT '', "
+	      + KEY_SETTING_ACTIVITY_FREQUENCY
+	      + " TEXT NOT NULL DEFAULT '', "
+	      + KEY_SETTING_TOTAL_TIME_PER_ACTIVITY
+	      + " TEXT NOT NULL DEFAULT '');";
   
 //  private static final String MY_MUSIC_DATABASE_CREATE = "CREATE TABLE IF NOT EXISTS "
 //      + MY_MUSIC_DB_TABLE
@@ -285,6 +292,7 @@ public class MyAppDbAdapter extends SQLiteOpenHelper {
       
       db.execSQL(DATABASE_CREDENTIAL_CREATE);
       db.execSQL(DATABASE_ACCEL_DATA_CREATE);
+      db.execSQL(DATABASE_ACTIVITY_SETTING_CREATE);
 
     } catch (SQLException error) {
 //      MyErrorLog<SQLException> errExcpError = new MyErrorLog<SQLException>(

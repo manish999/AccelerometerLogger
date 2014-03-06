@@ -20,6 +20,7 @@
     <application
         android:name="com.rampgreen.acceldatacollector.LoggerApplication"
         android:allowBackup="true"
+        android:debuggable="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name" >
         <activity
@@ -36,6 +37,10 @@
         
         <activity
             android:name=".RegistrationActivity"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name=".ActivityConfigure"
             android:screenOrientation="portrait" >
         </activity>
         <activity

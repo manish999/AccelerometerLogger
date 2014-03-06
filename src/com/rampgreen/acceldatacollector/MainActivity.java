@@ -24,7 +24,6 @@ import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.text.Html;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -57,11 +56,9 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 	private StringBuilder pointBufferFiller = new StringBuilder();// seperated by comma
 
 	private TextView txtlogtime;
-	private TextView txtsensordata;
 	private String activityTypeForSensor = Constants.ACCEL_ACTIVITY_RUNNING;
 	private Date enddate;
 	private Date startdate;
-	private Double starttime = Double.valueOf(0.0D);
 	private DecimalFormat df3 = new DecimalFormat("#0.0000");
 	private DecimalFormat df6 = new DecimalFormat("#0.000000");
 	private DecimalFormat df0 = new DecimalFormat("#0");
@@ -70,8 +67,8 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 	boolean isStartFirstTimeStamp = false;
 	private String duration = "0";
 	private int selectedSpeed = 0;
-	private long startSystemTime;
 	private boolean init;
+	int timeCounter = 0;
 
 	private Vector<Points> csvModelList = new Vector<Points>();
 
@@ -85,7 +82,11 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 
 	private Graph mGraph;
 	private float sensorX, sensorY, sensorZ;
-	private long sensorTimeStamp;
+
+	private int totalDuration = 60;
+	private int totalReadingXYZ = 60;
+	private boolean isLastCall;
+	private int count = 0;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -135,10 +136,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
-		this.txtsensordata = ((TextView)findViewById(R.id.txtlogdata));
 		this.txtlogtime = ((TextView)findViewById(R.id.txtlogtime));
-		//		this.cmdrecord = ((Button)findViewById(R.id.cmdrecord));
-		//		this.cmdstop = ((Button)findViewById(R.id.cmdstopsave));
 
 		this.startdate = Calendar.getInstance().getTime();
 		resetSensorDataFiller();
@@ -218,9 +216,9 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 
 	protected void onStop() {
 		super.onStop();
-		if(mEntryCursor != null)
+		if(mEntryCursorAccel != null)
 		{
-			stopManagingCursor(mEntryCursor);
+			stopManagingCursor(mEntryCursorAccel);
 		}
 	};
 
@@ -237,10 +235,11 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		switch (p_item.getItemId()) {
 		case 0:
 			break;
-			//		case R.id.action_settings:
-			//			intent = new Intent(this, PreferencesActivity.class);
-			//			startActivity(intent);
-			//			break;
+		case R.id.action_setting_accelerometer:
+			intent = new Intent(this, ActivityConfigure.class);
+			startActivity(intent);
+			break;
+
 		case R.id.action_logout:
 			AppSettings.setPreference(this, null, AppSettings.ACCESS_TOKEN, "");
 			AppSettings.setPreference(this, null, AppSettings.USER_SELECTED_PASSWORD, "");
@@ -299,104 +298,6 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		sensorX =  sensorEvent.values[0];
 		sensorY =  sensorEvent.values[1];
 		sensorZ =  sensorEvent.values[2];
-		sensorTimeStamp = sensorEvent.timestamp;
-
-		// ploting graph
-//		xList.add(sensorX);
-//		yList.add(sensorY);
-//		zList.add(sensorZ);
-//		mGraph.initData(xList, yList, zList);
-//		mGraph.setProperties();
-//		if (!init) {
-//			view = mGraph.getGraph();
-//			mChartContainer.addView(view);
-//			init = true;
-//		} else {
-//			mChartContainer.removeView(view);
-//			view = mGraph.getGraph();
-//			mChartContainer.addView(view);
-//		}
-		//		// automatic stop after one minute 
-		//		int durationInt = Integer.parseInt(duration);
-		//		if(durationInt >= 60) {
-		//			AppLog.e(duration);
-		//			isStartFirstTimeStamp = false;
-		//			isRecording = false;
-		//			peroformButtonClick();
-		//			duration =  "0";
-		//			return;
-		//		}
-		//
-		//		if(selectedSpeed == 0) {
-		//			long now = System.currentTimeMillis();
-		//			if (now >= startSystemTime + 1000) {
-		//				AppLog.e(duration);
-		//				//                samplingRate = numSamples / ((now - startSystemTime) / 1000.0);
-		//				startSystemTime = now;
-		//
-		//				float x =  sensorEvent.values[0];
-		//				float y =  sensorEvent.values[1];
-		//				float z =  sensorEvent.values[2];
-		//				long timestamp = sensorEvent.timestamp;
-		//				// adding the data to the list
-		//				csvModelList.add(new Points(x,y,z));
-		//				pointBufferFiller.append(df3.format(x) + COMMA + df3.format(y) + COMMA + df3.format(z) + COMMA);
-		//
-		//				if(isStartFirstTimeStamp) {
-		//					MainActivity.this.startdate = Calendar.getInstance().getTime();
-		//					this.starttime = Double.valueOf(sensorEvent.timestamp);
-		//					// start reading from 1st second so leave the 0th reading. 
-		//					resetSensorDataFiller();
-		//					isStartFirstTimeStamp = false;
-		//				}
-		//				if(isRecording) {
-		//					double d = (sensorEvent.timestamp - this.starttime.doubleValue()) / 1000000000.0D;
-		//					AppLog.e(d+"");
-		//					duration = df0.format(d)+"";
-		//					int reverseTimer = 60 - Integer.parseInt(duration);// to show reverse time from 60.
-		//					this.txtlogtime.setText("" + reverseTimer + " seconds");
-		//				}
-		//				// ploting graph
-		//				xList.add(x);
-		//				yList.add(y);
-		//				zList.add(z);
-		//				mGraph.initData(xList, yList, zList);
-		//				mGraph.setProperties();
-		//				if (!init) {
-		//					view = mGraph.getGraph();
-		//					mChartContainer.addView(view);
-		//					init = true;
-		//				} else {
-		//					mChartContainer.removeView(view);
-		//					view = mGraph.getGraph();
-		//					mChartContainer.addView(view);
-		//				}
-		////				this.txtsensordata.setText(Html.fromHtml("<b><font color=\"red\">X axis</font></b> : " + this.df3.format(x) + " m/s<sup>2</sup>" + "<br><b><font color=\"green\">Y axis</font></b> : " + this.df3.format(y) + " m/s<sup>2</sup>" + "<br><b><font color=\"blue\">Z axis</font></b> : " + this.df3.format(z) + " m/s<sup>2</sup>"));
-		//			}
-		//		} else {
-		//			float x =  sensorEvent.values[0];
-		//			float y =  sensorEvent.values[1];
-		//			float z =  sensorEvent.values[2];
-		//			long timestamp = sensorEvent.timestamp;
-		//			// adding the data to the list
-		//			csvModelList.add(new Points(x,y,z));
-		//			pointBufferFiller.append(df3.format(x) + COMMA + df3.format(y) + COMMA + df3.format(z) + COMMA);
-		//
-		//			if(isStartFirstTimeStamp) {
-		//				MainActivity.this.startdate = Calendar.getInstance().getTime();
-		//				this.starttime = Double.valueOf(sensorEvent.timestamp);
-		//				// start reading from 1st second so leave the 0th reading. 
-		//				resetSensorDataFiller();
-		//				isStartFirstTimeStamp = false;
-		//			}
-		//			if(isRecording) {
-		//				double d = (sensorEvent.timestamp - this.starttime.doubleValue()) / 1000000000.0D;
-		//				duration =d+"";
-		//				this.txtlogtime.setText("" + this.df0.format(d) + " seconds");
-		//			}
-		//
-		//			this.txtsensordata.setText(Html.fromHtml("<b><font color=\"red\">X axis</font></b> : " + this.df3.format(x) + " m/s<sup>2</sup>" + "<br><b><font color=\"green\">Y axis</font></b> : " + this.df3.format(y) + " m/s<sup>2</sup>" + "<br><b><font color=\"blue\">Z axis</font></b> : " + this.df3.format(z) + " m/s<sup>2</sup>"));
-		//		}
 	}
 
 	private String sendLoggerData(String userID, String activityType, String startTime, String endTime, Vector<Points> pointsList) throws JSONException 
@@ -408,19 +309,10 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		JSONObject jsonObj = new JSONObject();
 		jsonObj.put("user_id", userID); // Set the first name/pair 
 		jsonObj.put("activity_type", activityType);
-
-		//			        JSONObject jsonAdd = new JSONObject(); // we need another object to store the address
 		jsonObj.put("start_time_stamp", startTime);
 		jsonObj.put("end_time_stamp", endTime);
 		jsonObj.put("duration", duration);
 		StringBuilder stringBuilder = new StringBuilder(pointBufferFiller);
-		//		for (Points points : pointsList)
-		//		{
-		//			stringBuilder.append(points.getX() + "," + points.getY() + "," +points.getZ());
-		//			stringBuilder.append(",");
-		//		} 
-		//		
-		//		stringBuilder.deleteCharAt(pointsList.size()-1);
 		jsonObj.put("points", stringBuilder.toString());
 
 		// get network queue and add request to the queue
@@ -466,9 +358,6 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		return jsonObj.toString();
 
 	}
-	//	catch(JSONException ex) {
-	//		ex.printStackTrace();
-	//	}
 
 	@Override
 	public void onResponse(Object response)
@@ -539,35 +428,35 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		buttonClimbingDown.setBackgroundResource(R.drawable.start);
 	}
 
-	ProgressBar runningBar1; 
-	ProgressBar runningBar2;
-	ProgressBar runningBar3;
-	Button buttonRunning;
-	TextView tvRunning;
+	private ProgressBar runningBar1; 
+	private ProgressBar runningBar2;
+	private ProgressBar runningBar3;
+	private Button buttonRunning;
+	private TextView tvRunning;
 
-	ProgressBar walkingBar1;
-	ProgressBar walkingBar2;
-	ProgressBar walkingBar3;
-	Button buttonWalking;
-	TextView tvWalking;
+	private ProgressBar walkingBar1;
+	private ProgressBar walkingBar2;
+	private ProgressBar walkingBar3;
+	private Button buttonWalking;
+	private TextView tvWalking;
 
-	ProgressBar sittingBar1;
-	ProgressBar sittingBar2;
-	ProgressBar sittingBar3;
-	Button buttonSitting;
-	TextView tvSitting;
+	private ProgressBar sittingBar1;
+	private ProgressBar sittingBar2;
+	private ProgressBar sittingBar3;
+	private Button buttonSitting;
+	private TextView tvSitting;
 
-	ProgressBar climbingUpBar1;
-	ProgressBar climbingUpBar2;
-	ProgressBar climbingUpBar3;
-	Button buttonclimbingUp;
-	TextView tvClimbingUp;
+	private ProgressBar climbingUpBar1;
+	private ProgressBar climbingUpBar2;
+	private ProgressBar climbingUpBar3;
+	private Button buttonclimbingUp;
+	private TextView tvClimbingUp;
 
-	ProgressBar climbingDownBar1;
-	ProgressBar climbingDownBar2;
-	ProgressBar climbingDownBar3;
-	Button buttonClimbingDown;
-	TextView tvClimbingDown;
+	private ProgressBar climbingDownBar1;
+	private ProgressBar climbingDownBar2;
+	private ProgressBar climbingDownBar3;
+	private Button buttonClimbingDown;
+	private TextView tvClimbingDown;
 
 	private void clickActivityButton(View v, String activityType, int whichButtonSelected) {
 		//		if(v.isSelected()) {
@@ -757,20 +646,24 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 	}
 
 	CustomTimer customTimer;
+	int totalFrequency;
 	private void startRecordingData() {
 		if (! MainActivity.this.isRecording)
 		{
 			resetSensorDataFiller();
 			isStartFirstTimeStamp = true;
 		}
-		customTimer = new CustomTimer(this, 0, 1000);
-		customTimer.setAutomaticCancel(60000);
+		HashMap<String, Integer> durFrequncyMap = getDurationAndFrequencyByActivity();
+		totalDuration = durFrequncyMap.get("time");
+		totalFrequency = durFrequncyMap.get("frequency");
+		totalReadingXYZ = totalDuration * totalFrequency * 60;
+		customTimer = new CustomTimer(this, 0, totalFrequency);
+		customTimer.setAutomaticCancel(totalDuration * 1000);
 		customTimer.start();
 
 		MainActivity.this.isRecording = true;
 		MainActivity.this.startdate = Calendar.getInstance().getTime();
 		MainActivity.this.enddate = Calendar.getInstance().getTime();
-		startSystemTime = System.currentTimeMillis();
 		duration = "0";
 	}
 
@@ -779,6 +672,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		MainActivity.this.enddate = Calendar.getInstance().getTime();
 		MainActivity.this.isRecording = false;
 		MainActivity.this.isStartFirstTimeStamp = false;
+		count = timeCounter = 0;
 		customTimer.stop();
 		try
 		{ 
@@ -837,7 +731,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 			AppLog.e(e.getMessage());
 		}
 	}
-	Cursor mEntryCursor;
+	Cursor mEntryCursorAccel;
 	private void fetchAccelData(String userID, String activityType) {
 		HashMap<String, String> hashMap = new HashMap<String, String>();
 		try{
@@ -851,41 +745,30 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 			boolean dbOpenResult = this.dbAppDbObj.openDbAdapter();
 
 			if (dbOpenResult) {
-				mEntryCursor = this.dbAppDbObj.fetchAccelDataListEntry(userID, null);
+				mEntryCursorAccel = this.dbAppDbObj.fetchAccelDataListEntry(userID, null);
 				boolean dbCloseResult = this.dbAppDbObj.closeDbAdapter();
 
-				this.startManagingCursor(mEntryCursor);
+				this.startManagingCursor(mEntryCursorAccel);
 				if (!dbCloseResult)
 					throw new Exception("The database was not successfully closed.");
 
-				//				String id = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_ROWID));
-				//				String uID = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_USER_ID));
-				////				String name = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_NAME));
-				//				String activity_type = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_ACTIVITY_TYPE));
-				//				String duration_stored = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_DURATION));
-				//				String part_completed = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_PART_COMPLETED));
-				//							String name = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_ROWID));
-				//							String name = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_ROWID));
-				//				hashMap.put(activity_type, part_completed);
-				//				AppLog.e("AccelTABLE DATA: "+duration_stored + "  ActivityType : "+activity_type);
-
-				if(mEntryCursor.moveToFirst()) {
+				if(mEntryCursorAccel.moveToFirst()) {
 					do {
-						String id = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_ROWID));
-						String uID = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_USER_ID));
+						String id = mEntryCursorAccel.getString(mEntryCursorAccel.getColumnIndexOrThrow(MyAppDbAdapter.KEY_ROWID));
+						String uID = mEntryCursorAccel.getString(mEntryCursorAccel.getColumnIndexOrThrow(MyAppDbAdapter.KEY_USER_ID));
 						//						String name = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_NAME));
-						String activity_type = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_ACTIVITY_TYPE));
-						String duration_stored = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_DURATION));
-						String part_completed = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_PART_COMPLETED));
+						String activity_type = mEntryCursorAccel.getString(mEntryCursorAccel.getColumnIndexOrThrow(MyAppDbAdapter.KEY_ACTIVITY_TYPE));
+						String duration_stored = mEntryCursorAccel.getString(mEntryCursorAccel.getColumnIndexOrThrow(MyAppDbAdapter.KEY_DURATION));
+						String part_completed = mEntryCursorAccel.getString(mEntryCursorAccel.getColumnIndexOrThrow(MyAppDbAdapter.KEY_PART_COMPLETED));
 						//							String name = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_ROWID));
 						//							String name = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_ROWID));
 						hashMap.put(activity_type, part_completed);
 						AppLog.e("AccelTABLE DATA: "+duration_stored + "  ActivityType : "+activity_type);
 						progreesFiller(activity_type, part_completed);
-					} while (mEntryCursor.moveToNext());
-					if(mEntryCursor != null)
+					} while (mEntryCursorAccel.moveToNext());
+					if(mEntryCursorAccel != null)
 					{
-						stopManagingCursor(mEntryCursor);
+						stopManagingCursor(mEntryCursorAccel);
 					}
 				}
 			}// end if (blIsSuccessful == false)
@@ -1100,15 +983,18 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		this.isLastCall = isLastCall;
 		runOnUiThread(this);
 	}
-	int totalDuration = 60;
-	boolean isLastCall;
-	int count = 0;
+
 	@Override
 	public void run() {
-		AppLog.e("totalTimeCall"+ ++count);
+		AppLog.e("totalCall Of RUN method"+ ++count);
 		if(isLastCall) {
-			AppLog.e(duration);
-			this.txtlogtime.setText("" + --totalDuration + " seconds");
+			AppLog.e("Last call : " + duration);
+			if(timeCounter <= 0) {
+				timeCounter = totalFrequency;
+				this.txtlogtime.setText("" + --totalDuration + " seconds");
+				plotTheGraph();
+			}
+			timeCounter--;
 			isStartFirstTimeStamp = false;
 			isRecording = false;
 			peroformButtonClick();
@@ -1116,27 +1002,120 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 			return;
 		}
 		if(selectedSpeed == 0) {
-//			AppLog.e(duration);
-			// adding the data to the list
 			AppLog.e(df3.format(sensorX) + COMMA + df3.format(sensorY) + COMMA + df3.format(sensorZ) + COMMA);
 			csvModelList.add(new Points(sensorX,sensorY,sensorZ));
 			pointBufferFiller.append(df3.format(sensorX) + COMMA + df3.format(sensorY) + COMMA + df3.format(sensorZ) + COMMA);
 
 			if(isStartFirstTimeStamp) {
 				MainActivity.this.startdate = Calendar.getInstance().getTime();
-				this.starttime = Double.valueOf(sensorTimeStamp);
 				AppLog.e("isStartFirstTimeStamp");
 				// start reading from 1st second so leave the 0th reading. 
 				resetSensorDataFiller();
 				isStartFirstTimeStamp = false;
 			}
 			if(isRecording) {
-//				double d = (sensorTimeStamp - this.starttime.doubleValue()) / 1000000000.0D;
-//				AppLog.e(d+"");
-//				duration = df0.format(d)+"";
-//				int reverseTimer = 60 - Integer.parseInt(duration);// to show reverse time from 60.
-				this.txtlogtime.setText("" + --totalDuration + " seconds");
+				//				double d = (sensorTimeStamp - this.starttime.doubleValue()) / 1000000000.0D;
+				//				AppLog.e(d+"");
+				//				duration = df0.format(d)+"";
+				//				int reverseTimer = 60 - Integer.parseInt(duration);// to show reverse time from 60.
+				if(timeCounter <= 0) {
+					timeCounter = totalFrequency;
+					this.txtlogtime.setText("" + --totalDuration + " seconds");	
+					plotTheGraph();
+				}
+				timeCounter--;
 			}
 		} 
+	}
+
+	private HashMap<String, Integer> getDurationAndFrequencyByActivity() {
+		HashMap<String, Integer> durationFrequncyMap = new HashMap<String, Integer>();
+		String id = BeanController.getLoginBean().getId();
+		if(StringUtils.isEmpty(id) || id.equalsIgnoreCase("0")) {
+			id = (String)AppSettings.getPrefernce(this, null, AppSettings.USER_ID, "");
+		}
+
+		ArrayList<HashMap<String, String>> mapData = fetchSettingData(id, activityTypeForSensor);
+		HashMap<String, String> frequencyMap = mapData.get(0);
+		HashMap<String, String> timeMap = mapData.get(1);
+		String[] frequencyString = frequencyMap.get(activityTypeForSensor).split("\\ ");
+		String timeString = timeMap.get(activityTypeForSensor);
+
+		int time = Integer.parseInt(timeString)*60;
+		int frequency = Integer.parseInt(frequencyString[0]);
+		if(time == 0) time = 60;// default 1 minute
+		if(frequency == 0) frequency = 1; //default 1 heartz
+
+		AppLog.e("Fetched total time: "+timeString +"frequency : "+frequencyString);
+		durationFrequncyMap.put("frequency", frequency);
+		durationFrequncyMap.put("time", time);
+		return durationFrequncyMap;
+	}
+
+	private Cursor mEntryCursor;
+	private ArrayList<HashMap<String, String>> fetchSettingData(String userID, String activityType) {
+		ArrayList<HashMap<String, String>> arrayList = new ArrayList<HashMap<String,String>>();
+		HashMap<String, String> hashMapFrequency = new HashMap<String, String>();
+		HashMap<String, String> hashMapTotalTime = new HashMap<String, String>();
+		try{
+
+			if (this.dbAppDbObj == null) {
+				// set database query class object
+				this.dbAppDbObj = new MyAppDbSQL(this);
+			}
+
+			// save the data to the database table
+			boolean dbOpenResult = this.dbAppDbObj.openDbAdapter();
+
+			if (dbOpenResult) {
+				mEntryCursor = this.dbAppDbObj.fetchAccelSettingEntry(userID, activityType);
+				boolean dbCloseResult = this.dbAppDbObj.closeDbAdapter();
+
+				this.startManagingCursor(mEntryCursor);
+				if (!dbCloseResult)
+					throw new Exception("The database was not successfully closed.");
+				if(mEntryCursor.moveToFirst()) {
+					do {
+						String id = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_ROWID));
+						String uID = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_USER_ID));
+						String activity_type = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_ACTIVITY_TYPE));
+						String storedFrequency = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_SETTING_ACTIVITY_FREQUENCY));
+						String storedTotalTime = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_SETTING_TOTAL_TIME_PER_ACTIVITY));
+						hashMapFrequency.put(activity_type, storedFrequency);
+						hashMapTotalTime.put(activity_type, storedTotalTime);
+						AppLog.e("storedFrequency : "+storedFrequency + "  ActivityType : "+activity_type + "  TotalTime : "+storedTotalTime);
+						//						progreesFiller(activity_type, activity_type_value);
+					} while (mEntryCursor.moveToNext());
+
+					arrayList.add(hashMapFrequency);
+					arrayList.add(hashMapTotalTime);
+					if(mEntryCursor != null) {
+						stopManagingCursor(mEntryCursor);
+					}
+				}
+			}// end if (blIsSuccessful == false)
+			AppLog.e("part Completed : "+hashMapFrequency.toString());
+		}catch (Exception e) {
+			AppLog.e(e.getMessage());
+		}
+		return arrayList;
+	}
+	
+	private void plotTheGraph() {
+		xList.add(sensorX);
+		yList.add(sensorY);
+		zList.add(sensorZ);
+		mGraph.initData(xList, yList, zList);
+		mGraph.setProperties();
+		if (!init) {
+			view = mGraph.getGraph();
+			mChartContainer.addView(view);
+			init = true;
+		} else {
+			mChartContainer.removeView(view);
+			view = mGraph.getGraph();
+			mChartContainer.addView(view);
+		}
+
 	}
 }

@@ -7,7 +7,7 @@ import com.rampgreen.acceldatacollector.util.AppLog;
 
 public class CustomTimer extends TimerTask{
 
-	private long period = 1000;
+	private long period = 1000; //1 second
 	private long delay = 0;
 	private Timer myTimer;
 	private CustomTimerCallBack customTimerCallBack;
@@ -22,6 +22,14 @@ public class CustomTimer extends TimerTask{
 		myTimer = new Timer();
 
 	}
+	
+	public CustomTimer(CustomTimerCallBack customTimerCallBack, long delay, int sampleRateInHertz) {
+		this.delay = delay;
+		this.period = period / (long)sampleRateInHertz;
+		this.customTimerCallBack = customTimerCallBack;
+		myTimer = new Timer();
+
+	}
 
 	public void start() {
 		totalExcutionTime = 0;
@@ -29,6 +37,9 @@ public class CustomTimer extends TimerTask{
 		myTimer.schedule(this, delay, period);
 	}
 
+	/**
+	 * @param cancelDuration in miliseconds
+	 */
 	public void setAutomaticCancel(long cancelDuration) {
 		this.cancelDuration = cancelDuration;
 	}
@@ -57,6 +68,17 @@ public class CustomTimer extends TimerTask{
 		totalExcutionTime = totalExcutionTime + period;
 		elapsedExcutionTime = cancelDuration - totalExcutionTime;
 		AppLog.e("elapsedTime"+elapsedExcutionTime);
+		
+		
+		// a condition if elapsedExecution or u can say period  is not complete number 
+		// like 1000/3 = 333.33 but schedular takes integer(333) so 1 milisecond differ occurs after 3 counts
+		//it will avoid this condition
+		if(elapsedExcutionTime - period < 0) {
+			customTimerCallBack.exceuteOnUIThread(true);
+			stop();
+			return;
+		}
+		
 		if(elapsedExcutionTime == 0) {
 			customTimerCallBack.exceuteOnUIThread(true);
 		} else if(totalExcutionTime <= cancelDuration) {
