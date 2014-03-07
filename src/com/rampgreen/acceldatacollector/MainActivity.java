@@ -23,6 +23,7 @@ import android.hardware.SensorManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -65,7 +66,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 
 	boolean isRecording = false;
 	boolean isStartFirstTimeStamp = false;
-	private String duration = "0";
+	private String durationToBeStoredOnServer = "0";
 	private int selectedSpeed = 0;
 	private boolean init;
 	int timeCounter = 0;
@@ -83,10 +84,11 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 	private Graph mGraph;
 	private float sensorX, sensorY, sensorZ;
 
-	private int totalDuration = 60;
+	private int totalReverseDuration = 60;
 	private int totalReadingXYZ = 60;
 	private boolean isLastCall;
-	private int count = 0;
+	/*if frequency 2 and time duration 3 minute(180) so countmethodcall will be 360*/
+	private int countMethodCall = 0;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -302,7 +304,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 
 	private String sendLoggerData(String userID, String activityType, String startTime, String endTime, Vector<Points> pointsList) throws JSONException 
 	{
-		if(duration.equalsIgnoreCase("0")) {
+		if(durationToBeStoredOnServer.equalsIgnoreCase("0")) {
 			return "Duration is 0, so no need to send logged data.";
 		}
 		// Here we convert Java Object to JSON 
@@ -311,7 +313,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		jsonObj.put("activity_type", activityType);
 		jsonObj.put("start_time_stamp", startTime);
 		jsonObj.put("end_time_stamp", endTime);
-		jsonObj.put("duration", duration);
+		jsonObj.put("duration", durationToBeStoredOnServer);
 		StringBuilder stringBuilder = new StringBuilder(pointBufferFiller);
 		jsonObj.put("points", stringBuilder.toString());
 
@@ -654,17 +656,18 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 			isStartFirstTimeStamp = true;
 		}
 		HashMap<String, Integer> durFrequncyMap = getDurationAndFrequencyByActivity();
-		totalDuration = durFrequncyMap.get("time");
+		totalReverseDuration = durFrequncyMap.get("time");// in seconds
+		durationToBeStoredOnServer = totalReverseDuration +"";
 		totalFrequency = durFrequncyMap.get("frequency");
-		totalReadingXYZ = totalDuration * totalFrequency * 60;
+		totalReadingXYZ = totalReverseDuration * totalFrequency * 60;
 		customTimer = new CustomTimer(this, 0, totalFrequency);
-		customTimer.setAutomaticCancel(totalDuration * 1000);
+		customTimer.setAutomaticCancel(totalReverseDuration * 1000);
 		customTimer.start();
 
 		MainActivity.this.isRecording = true;
 		MainActivity.this.startdate = Calendar.getInstance().getTime();
 		MainActivity.this.enddate = Calendar.getInstance().getTime();
-		duration = "0";
+//		duration = "0";
 	}
 
 	private void stopRecordingData() {
@@ -672,7 +675,8 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		MainActivity.this.enddate = Calendar.getInstance().getTime();
 		MainActivity.this.isRecording = false;
 		MainActivity.this.isStartFirstTimeStamp = false;
-		count = timeCounter = 0;
+		durationToBeStoredOnServer = countMethodCall / totalFrequency+"";
+		countMethodCall = timeCounter = 0;
 		customTimer.stop();
 		try
 		{ 
@@ -695,11 +699,11 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 	private MyAppDbSQL dbAppDbObj;
 	private void storeAccelData(String userID, String activityType, String startTime, String endTime, Vector<Points> pointsList) {
 		try{
-			if (this.dbAppDbObj == null) {
-				// set database query class object
-				this.dbAppDbObj = new MyAppDbSQL(this);
-			}
-			if(duration.equalsIgnoreCase("0")) {
+			//			if (this.dbAppDbObj == null) {
+			// set database query class object
+			this.dbAppDbObj = new MyAppDbSQL(this);
+			//			}
+			if(durationToBeStoredOnServer.equalsIgnoreCase("0")) {
 				AppLog.e("Duration is 0, so no need to send logged data.");
 				return;
 			}
@@ -715,7 +719,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 				//				String fetchedPartcompleted = mEntryCursor.getString(mEntryCursor.getColumnIndexOrThrow(MyAppDbAdapter.KEY_PART_COMPLETED));
 				//				int fetchedPartcompletedInt = Integer.parseInt(fetchedPartcompleted);
 				//				partCompleted = fetchedPartcompletedInt +1+"";// increment by 1 
-				boolean blIsSuccessful = this.dbAppDbObj.createAccelDataEntryAutoIncrementPartCompletedColumn(userID, stringBuilder.toString(), startTime, endTime, activityType, duration, "20","3","3", "0");
+				boolean blIsSuccessful = this.dbAppDbObj.createAccelDataEntryAutoIncrementPartCompletedColumn(userID, stringBuilder.toString(), startTime, endTime, activityType, durationToBeStoredOnServer, "20","3","3", "0");
 				boolean dbCloseResult = this.dbAppDbObj.closeDbAdapter();
 				if (!dbCloseResult)
 					throw new Exception(
@@ -736,10 +740,10 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		HashMap<String, String> hashMap = new HashMap<String, String>();
 		try{
 
-			if (this.dbAppDbObj == null) {
-				// set database query class object
-				this.dbAppDbObj = new MyAppDbSQL(this);
-			}
+			//			if (this.dbAppDbObj == null) {
+			// set database query class object
+			this.dbAppDbObj = new MyAppDbSQL(this);
+			//			}
 
 			// save the data to the database table
 			boolean dbOpenResult = this.dbAppDbObj.openDbAdapter();
@@ -986,19 +990,18 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 
 	@Override
 	public void run() {
-		AppLog.e("totalCall Of RUN method"+ ++count);
+		AppLog.e("totalCall Of RUN method"+ ++countMethodCall);
 		if(isLastCall) {
-			AppLog.e("Last call : " + duration);
+			AppLog.e("Last call : " + durationToBeStoredOnServer);
 			if(timeCounter <= 0) {
 				timeCounter = totalFrequency;
-				this.txtlogtime.setText("" + --totalDuration + " seconds");
+				this.txtlogtime.setText("" + --totalReverseDuration + " seconds");
 				plotTheGraph();
 			}
 			timeCounter--;
 			isStartFirstTimeStamp = false;
 			isRecording = false;
 			peroformButtonClick();
-			duration =  "0";
 			return;
 		}
 		if(selectedSpeed == 0) {
@@ -1020,7 +1023,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 				//				int reverseTimer = 60 - Integer.parseInt(duration);// to show reverse time from 60.
 				if(timeCounter <= 0) {
 					timeCounter = totalFrequency;
-					this.txtlogtime.setText("" + --totalDuration + " seconds");	
+					this.txtlogtime.setText("" + --totalReverseDuration + " seconds");	
 					plotTheGraph();
 				}
 				timeCounter--;
@@ -1059,10 +1062,10 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		HashMap<String, String> hashMapTotalTime = new HashMap<String, String>();
 		try{
 
-			if (this.dbAppDbObj == null) {
-				// set database query class object
-				this.dbAppDbObj = new MyAppDbSQL(this);
-			}
+			//			if (this.dbAppDbObj == null) {
+			// set database query class object
+			this.dbAppDbObj = new MyAppDbSQL(this);
+			//			}
 
 			// save the data to the database table
 			boolean dbOpenResult = this.dbAppDbObj.openDbAdapter();
@@ -1100,7 +1103,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		}
 		return arrayList;
 	}
-	
+
 	private void plotTheGraph() {
 		xList.add(sensorX);
 		yList.add(sensorY);
@@ -1117,5 +1120,12 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 			mChartContainer.addView(view);
 		}
 
+	}
+
+	@Override
+	public void startManagingCursor(Cursor c) {
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+			super.startManagingCursor(c); 
+		}
 	}
 }

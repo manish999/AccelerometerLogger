@@ -12,7 +12,7 @@ import android.widget.Toast;
  */
 public class AppLog {
 	public static final String APP_TAG = "caretaker";
-	private static final boolean SHOWLOG = false;
+	private static final boolean SHOWLOG = true;
 	public static final boolean RELEASE = false;
 
 	private AppLog() {	
