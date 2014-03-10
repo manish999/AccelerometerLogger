@@ -237,10 +237,10 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		switch (p_item.getItemId()) {
 		case 0:
 			break;
-		case R.id.action_setting_accelerometer:
-			intent = new Intent(this, ActivityConfigure.class);
-			startActivity(intent);
-			break;
+//		case R.id.action_setting_accelerometer:
+//			intent = new Intent(this, ActivityConfigure.class);
+//			startActivity(intent);
+//			break;
 
 		case R.id.action_logout:
 			AppSettings.setPreference(this, null, AppSettings.ACCESS_TOKEN, "");
@@ -655,10 +655,13 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 			resetSensorDataFiller();
 			isStartFirstTimeStamp = true;
 		}
-		HashMap<String, Integer> durFrequncyMap = getDurationAndFrequencyByActivity();
-		totalReverseDuration = durFrequncyMap.get("time");// in seconds
+//		HashMap<String, Integer> durFrequncyMap = getDurationAndFrequencyByActivity();
+//		totalReverseDuration = durFrequncyMap.get("time");// in seconds
+		
+//		totalFrequency = durFrequncyMap.get("frequency");
+		totalFrequency = 20;// set frequency to 20 to release version7
+		totalReverseDuration = 60;// set time to 1 minute to release version7
 		durationToBeStoredOnServer = totalReverseDuration +"";
-		totalFrequency = durFrequncyMap.get("frequency");
 		totalReadingXYZ = totalReverseDuration * totalFrequency * 60;
 		customTimer = new CustomTimer(this, 0, totalFrequency);
 		customTimer.setAutomaticCancel(totalReverseDuration * 1000);
@@ -1044,7 +1047,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		String[] frequencyString = frequencyMap.get(activityTypeForSensor).split("\\ ");
 		String timeString = timeMap.get(activityTypeForSensor);
 
-		int time = Integer.parseInt(timeString)*60;
+		int time = Integer.parseInt(timeString)*60;// to make it seconds
 		int frequency = Integer.parseInt(frequencyString[0]);
 		if(time == 0) time = 60;// default 1 minute
 		if(frequency == 0) frequency = 1; //default 1 heartz
