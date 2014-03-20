@@ -34,14 +34,14 @@ public class SplashActivity extends Activity {
 			case STOPSPLASH:
 				Intent intent = new Intent();
 				selectedMailID = (String) AppSettings.getPrefernce(SplashActivity.this, null, AppSettings.USER_SELECTED_MAIL_ID, "");
-//				accountToken = (String) AppSettings.getPrefernce(SplashActivity.this, null, AppSettings., "");
+				//				accountToken = (String) AppSettings.getPrefernce(SplashActivity.this, null, AppSettings., "");
 				password = (String) AppSettings.getPrefernce(SplashActivity.this, null, AppSettings.USER_SELECTED_PASSWORD, "");
 				//Generating and Starting new intent on splash time out	
-				if(StringUtils.notEmpty (selectedMailID) && StringUtils.notEmpty(password)){
-					intent.setClass(getApplicationContext(), MainActivity.class);
-				} else {
-					intent.setClass(getApplicationContext(), LoginActivity.class);
-				}
+				//				if(StringUtils.notEmpty (selectedMailID) && StringUtils.notEmpty(password)){
+				intent.setClass(getApplicationContext(), MainActivityNew.class);
+				//				} else {
+				//					intent.setClass(getApplicationContext(), LoginActivity.class);
+				//				}
 				intent.putExtra(Constants.CALLING_ACTIVITY_TYPE, Constants.CALLING_ACTIVITY_SPLASH);
 				startActivity(intent);
 				SplashActivity.this.finish(); 
@@ -67,13 +67,13 @@ public class SplashActivity extends Activity {
 		if( lastVersionInstalled  != current_updated_v ){
 			AppLog.d("MOV", "version is updated so some pre initialization can be done here");
 			// whenever user update app , there should be a fresh start.
-//			AppSettings.setPreference(this, null, AppSettings.USER_SELECTED_MAIL_ID, "");
-//			AppSettings.setPreference(this, null, AppSettings.USER_SELECTED_PASSWORD, "");
-//			AppSettings.setPreference(this, null, AppSettings.ACCOUNT_TOKEN, "");
-//			AppSettings.setPreference(this, null, AppSettings.PROFILE_ID, "");
-//			//			String curDate = DateUtils.getCurrentDate(DateUtils.FORMAT_YYYYMMDD_DASHESH);
-//			AppSettings.setPreference(this, null, AppSettings.START_DATE, daterange[0]);
-//			AppSettings.setPreference(this, null, AppSettings.END_DATE, daterange[1]);
+			//			AppSettings.setPreference(this, null, AppSettings.USER_SELECTED_MAIL_ID, "");
+			//			AppSettings.setPreference(this, null, AppSettings.USER_SELECTED_PASSWORD, "");
+			//			AppSettings.setPreference(this, null, AppSettings.ACCOUNT_TOKEN, "");
+			//			AppSettings.setPreference(this, null, AppSettings.PROFILE_ID, "");
+			//			//			String curDate = DateUtils.getCurrentDate(DateUtils.FORMAT_YYYYMMDD_DASHESH);
+			//			AppSettings.setPreference(this, null, AppSettings.START_DATE, daterange[0]);
+			//			AppSettings.setPreference(this, null, AppSettings.END_DATE, daterange[1]);
 		}
 
 		Message msg = new Message();

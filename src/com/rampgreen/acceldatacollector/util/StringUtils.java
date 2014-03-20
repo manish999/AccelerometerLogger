@@ -38,6 +38,17 @@ public class StringUtils {
 		}
 		return flag==1 ? false : true;
 	}
+	
+	public static boolean isNumeric(String str){
+		if(isEmpty(str))
+			return false;
+		try{
+			int a = Integer.parseInt(str.trim());
+			return true;
+		} catch (NumberFormatException e) {
+			return false;
+		}
+	}
 
 	public static String cutString(String str,int length){
 		String result = str;

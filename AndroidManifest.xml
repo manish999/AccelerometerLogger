@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.rampgreen.acceldatacollector"
-    android:versionCode="9"
-    android:versionName="1.4" >
+    android:versionCode="10"
+    android:versionName="1.5" >
 
     <uses-sdk
         android:minSdkVersion="5"
@@ -17,6 +17,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <application
         android:name="com.rampgreen.acceldatacollector.LoggerApplication"
@@ -49,6 +50,10 @@
         </activity>
         <activity
             android:name=".MainActivity"
+            android:screenOrientation="portrait" >
+        </activity>
+         <activity
+            android:name=".MainActivityNew"
             android:screenOrientation="portrait" >
         </activity>
         <activity

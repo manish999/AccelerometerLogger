@@ -5,6 +5,10 @@ import java.util.TimerTask;
 
 import com.rampgreen.acceldatacollector.util.AppLog;
 
+/**
+ * @author Manish Pathak 
+ *
+ */
 public class CustomTimer extends TimerTask{
 
 	private long period = 1000; //1 second

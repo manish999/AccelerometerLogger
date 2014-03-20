@@ -7,7 +7,7 @@ public class Constants
 //	public static final String URL_WEB_SERVICE = "http://121.240.116.173/mwservice/index.php";
 	//	public static final String URL_WEB_SERVICE = "http://121.240.116.173/mwservice_dev/index.php";
 	public static final String LOGIN_ACTION = "";
-	public static final String URL_WEB_SERVICE = "http://121.240.116.173/accelerometer/service.php";
+	public static final String URL_WEB_SERVICE = "http://121.240.116.173/accelerometer/service.php";// local ip 10.15.5.11
 
 	public static final String ACCEL_ACTIVITY_RUNNING = "1";
 	public static final String ACCEL_ACTIVITY_WALKING = "2";

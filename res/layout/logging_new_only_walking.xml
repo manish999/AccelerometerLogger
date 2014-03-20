@@ -16,17 +16,21 @@
         android:layout_height="match_parent"
         android:orientation="vertical" >
 
-        <include
-            android:layout_width="match_parent"
+        <Button
+            android:id="@+id/btn_start_stop"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            layout="@layout/progress_bar_and_button" />
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/button_start_stop"
+            android:enabled="true"
+            android:textColor="@android:color/black" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginBottom="2.0dip"
             android:layout_marginTop="20.0dip"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:weightSum="2" >
 
             <LinearLayout
@@ -36,7 +40,6 @@
                 android:layout_weight="1"
                 android:orientation="horizontal" >
             </LinearLayout>
-
             <!-- here reverse counter will come -->
 
             <LinearLayout
@@ -56,12 +59,28 @@
                     android:textColor="@android:color/black"
                     android:textStyle="bold" />
             </LinearLayout>
+        </LinearLayout>
+
+        <include
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            layout="@layout/progress_bar_and_button"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="2.0dip"
+            android:layout_marginTop="20.0dip"
+            android:orientation="horizontal"
+            android:weightSum="2" >
+
             <LinearLayout
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:layout_weight="1"
-                android:visibility="gone"
                 android:orientation="vertical"
+                android:visibility="gone"
                 android:weightSum="4" >
 
                 <TextView
@@ -70,9 +89,9 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="5.0dip"
                     android:text="Sensor Log"
-                    android:visibility="gone"
                     android:textAppearance="?android:textAppearanceMedium"
-                    android:textColor="@android:color/black" />
+                    android:textColor="@android:color/black"
+                    android:visibility="gone" />
 
                 <TextView
                     android:id="@+id/txtlogdata"
