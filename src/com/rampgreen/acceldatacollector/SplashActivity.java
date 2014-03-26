@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
+import com.rampgreen.acceldatacollector.service.MainActivity;
 import com.rampgreen.acceldatacollector.util.AppLog;
 import com.rampgreen.acceldatacollector.util.AppSettings;
 import com.rampgreen.acceldatacollector.util.DeviceUtil;
@@ -38,7 +39,7 @@ public class SplashActivity extends Activity {
 				password = (String) AppSettings.getPrefernce(SplashActivity.this, null, AppSettings.USER_SELECTED_PASSWORD, "");
 				//Generating and Starting new intent on splash time out	
 				//				if(StringUtils.notEmpty (selectedMailID) && StringUtils.notEmpty(password)){
-				intent.setClass(getApplicationContext(), MainActivityNew.class);
+				intent.setClass(getApplicationContext(), MainActivity.class);
 				//				} else {
 				//					intent.setClass(getApplicationContext(), LoginActivity.class);
 				//				}

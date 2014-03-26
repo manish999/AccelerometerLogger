@@ -9,7 +9,6 @@
     <string name="title_section4">Sleeping</string>
     <string name="title_section5">Climb Up</string>
     <string name="title_section6">Climb Down</string>
-    
     <string name="action_device_id">Device Id</string>
     <string name="hint_email">me@email.com</string>
     <string name="hint_password">password</string>
@@ -17,10 +16,11 @@
     <string name="message_empty">Mandatory</string>
     <string name="btn_login_txt">Log in / Register</string>
     <string name="select">select</string>
-    
-     <string name="radio_male">Male</string>
+    <string name="radio_male">Male</string>
     <string name="radio_female">Female</string>
     <string name="action_logout">Logout</string>
     <string name="sentrequest">sent request</string>
+    <string name="service_started">Example Service started</string>
+    <string name="service_label">Example Service Label</string>
 
 </resources>

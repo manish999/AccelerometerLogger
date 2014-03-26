@@ -226,18 +226,18 @@ public class ActivityMain extends Activity  implements SensorEventListener, List
 //			intent = new Intent(this, PreferencesActivity.class);
 //			startActivity(intent);
 //			break;
-		case R.id.action_logout:
-			AppSettings.setPreference(this, null, AppSettings.ACCESS_TOKEN, "");
-			AppSettings.setPreference(this, null, AppSettings.USER_ID, "");
-//			AppSettings.setPreference(this, null, AppSettings.USER_SELECTED_MAIL_ID, "");
-			AppSettings.setPreference(this, null, AppSettings.USER_SELECTED_PASSWORD, "");
-			BeanController.getLoginBean().setId("");
-
-			intent = new Intent(getApplicationContext(), LoginActivity.class);
-			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			startActivity(intent);
-			finish();
-			return true;
+//		case R.id.action_logout:
+//			AppSettings.setPreference(this, null, AppSettings.ACCESS_TOKEN, "");
+//			AppSettings.setPreference(this, null, AppSettings.USER_ID, "");
+////			AppSettings.setPreference(this, null, AppSettings.USER_SELECTED_MAIL_ID, "");
+//			AppSettings.setPreference(this, null, AppSettings.USER_SELECTED_PASSWORD, "");
+//			BeanController.getLoginBean().setId("");
+//
+//			intent = new Intent(getApplicationContext(), LoginActivity.class);
+//			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+//			startActivity(intent);
+//			finish();
+//			return true;
 		}
 		return super.onOptionsItemSelected(p_item);
 	}

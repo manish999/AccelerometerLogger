@@ -14,10 +14,17 @@
         android:orderInCategory="100"
         android:showAsAction="always"
         android:title="Setting"/>-->
-    <item
+        
+      <item
+        android:id="@+id/action_setting_accelerometer"
+        android:icon="@drawable/action_settings"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="Duration"/>
+    <!-- <item
         android:id="@+id/action_logout"
         android:orderInCategory="100"
         android:showAsAction="never"
-        android:title="@string/action_logout"/>
+        android:title="@string/action_logout"/>-->
 
 </menu>

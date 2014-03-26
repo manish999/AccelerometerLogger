@@ -129,7 +129,7 @@ public class LoginActivity extends BaseActivity
 			AppSettings.setPreference(this, null, AppSettings.USER_ID, login.getId());
 			AppSettings.setPreference(this, null, AppSettings.USER_NAME, login.getUserName());
 			// on success , call Main screen
-			intent = new Intent(getApplicationContext(), MainActivity.class);
+			intent = new Intent(getApplicationContext(), MainActivityOld.class);
 //			intent.putExtra(Constants.BUNDLE_KEY_USERS, userBean);
 			intent.putExtra(Constants.CALLING_ACTIVITY_TYPE, Constants.CALLING_ACTIVITY_LOGIN);
 			startActivity(intent);

@@ -177,7 +177,7 @@ public class RegistrationActivity extends BaseActivity
 			AppSettings.setPreference(this, null, AppSettings.USER_ID, login.getId());
 			AppSettings.setPreference(this, null, AppSettings.USER_NAME, login.getUserName());
 			// open home activity 
-			Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+			Intent intent = new Intent(getApplicationContext(), MainActivityOld.class);
 			intent.putExtra(Constants.CALLING_ACTIVITY_TYPE, Constants.CALLING_ACTIVITY_REGISTRATION);
 			//						intent.putExtra(Constants.BUNDLE_KEY_USERS, userBean);
 			startActivity(intent);

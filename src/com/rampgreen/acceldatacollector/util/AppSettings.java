@@ -24,6 +24,7 @@ public class AppSettings {
 	public static final String SPEED_SENSOR = "speed_sensor";
 	public static final String CUSTOM_SPEED = "custom_speed_sensor";
 	public static final String USER_NAME = "user_name";
+	public static final String DURATION = "duraaa";
 
 
 	public static Object getPrefernce(Context context, String prefName, String tag, Object defaultValue){

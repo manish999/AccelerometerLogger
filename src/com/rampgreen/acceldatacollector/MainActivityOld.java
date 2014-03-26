@@ -47,7 +47,7 @@ import com.rampgreen.acceldatacollector.util.AppSettings;
 import com.rampgreen.acceldatacollector.util.StringUtils;
 import com.rampgreen.acceldatacollector.util.WidgetUtil;
 
-public class MainActivity extends Activity  implements SensorEventListener, Listener, ErrorListener, Runnable, CustomTimer.CustomTimerCallBack
+public class MainActivityOld extends Activity  implements SensorEventListener, Listener, ErrorListener, Runnable, CustomTimer.CustomTimerCallBack
 {
 	private int whichButtonSelected = 0;
 
@@ -193,7 +193,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 
 		String userID = BeanController.getLoginBean().getId();
 		if(StringUtils.isEmpty(userID) || userID.equalsIgnoreCase("0")) {
-			userID = (String)AppSettings.getPrefernce(MainActivity.this, null, AppSettings.USER_ID, "");
+			userID = (String)AppSettings.getPrefernce(MainActivityOld.this, null, AppSettings.USER_ID, "");
 		}
 		fetchAccelData(userID, activityTypeForSensor);
 
@@ -213,7 +213,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		if(isRecording && isStartFirstTimeStamp) {
 			peroformButtonClick();
 		}
-		MainActivity.this.isRecording = false;
+		MainActivityOld.this.isRecording = false;
 	}
 
 	protected void onStop() {
@@ -242,17 +242,17 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 //			startActivity(intent);
 //			break;
 
-		case R.id.action_logout:
-			AppSettings.setPreference(this, null, AppSettings.ACCESS_TOKEN, "");
-			AppSettings.setPreference(this, null, AppSettings.USER_SELECTED_PASSWORD, "");
-			AppSettings.setPreference(this, null, AppSettings.USER_ID, "");
-			BeanController.getLoginBean().setId("");
-
-			intent = new Intent(getApplicationContext(), LoginActivity.class);
-			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			startActivity(intent);
-			finish();
-			return true;
+//		case R.id.action_logout:
+//			AppSettings.setPreference(this, null, AppSettings.ACCESS_TOKEN, "");
+//			AppSettings.setPreference(this, null, AppSettings.USER_SELECTED_PASSWORD, "");
+//			AppSettings.setPreference(this, null, AppSettings.USER_ID, "");
+//			BeanController.getLoginBean().setId("");
+//
+//			intent = new Intent(getApplicationContext(), LoginActivity.class);
+//			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+//			startActivity(intent);
+//			finish();
+//			return true;
 		}
 		return super.onOptionsItemSelected(p_item);
 	}
@@ -326,7 +326,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		Map<String, String> loginParam = QueryHelper.createSensorDataQuery(jsonObj.toString());
 		CustomRequest customRequest = new CustomRequest(Method.POST,
 				Constants.URL_WEB_SERVICE, loginParam,
-				MainActivity.this, MainActivity.this);
+				MainActivityOld.this, MainActivityOld.this);
 		queue.add(customRequest);
 		// In this case we need a json array to hold the java list
 		/*******************************************************************/
@@ -650,7 +650,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 	CustomTimer customTimer;
 	int totalFrequency;
 	private void startRecordingData() {
-		if (! MainActivity.this.isRecording)
+		if (! MainActivityOld.this.isRecording)
 		{
 			resetSensorDataFiller();
 			isStartFirstTimeStamp = true;
@@ -667,30 +667,30 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 		customTimer.setAutomaticCancel(totalReverseDuration * 1000);
 		customTimer.start();
 
-		MainActivity.this.isRecording = true;
-		MainActivity.this.startdate = Calendar.getInstance().getTime();
-		MainActivity.this.enddate = Calendar.getInstance().getTime();
+		MainActivityOld.this.isRecording = true;
+		MainActivityOld.this.startdate = Calendar.getInstance().getTime();
+		MainActivityOld.this.enddate = Calendar.getInstance().getTime();
 //		duration = "0";
 	}
 
 	private void stopRecordingData() {
 		//		if (MainActivity.this.isRecording)
-		MainActivity.this.enddate = Calendar.getInstance().getTime();
-		MainActivity.this.isRecording = false;
-		MainActivity.this.isStartFirstTimeStamp = false;
+		MainActivityOld.this.enddate = Calendar.getInstance().getTime();
+		MainActivityOld.this.isRecording = false;
+		MainActivityOld.this.isStartFirstTimeStamp = false;
 		durationToBeStoredOnServer = countMethodCall / totalFrequency+"";
 		countMethodCall = timeCounter = 0;
 		customTimer.stop();
 		try
 		{ 
-			Vector<Points> list = (Vector<Points>) MainActivity.this.csvModelList.clone();
+			Vector<Points> list = (Vector<Points>) MainActivityOld.this.csvModelList.clone();
 			String id = BeanController.getLoginBean().getId();
 			if(StringUtils.isEmpty(id) || id.equalsIgnoreCase("0")) {
-				id = (String)AppSettings.getPrefernce(MainActivity.this, null, AppSettings.USER_ID, "");
+				id = (String)AppSettings.getPrefernce(MainActivityOld.this, null, AppSettings.USER_ID, "");
 			}
 
-			storeAccelData(id, activityTypeForSensor+"", MainActivity.this.startdate.getTime()+"", MainActivity.this.enddate.getTime()+"", list);
-			String logData = sendLoggerData(id, activityTypeForSensor+"", MainActivity.this.startdate.getTime()+"", MainActivity.this.enddate.getTime()+"", list);
+			storeAccelData(id, activityTypeForSensor+"", MainActivityOld.this.startdate.getTime()+"", MainActivityOld.this.enddate.getTime()+"", list);
+			String logData = sendLoggerData(id, activityTypeForSensor+"", MainActivityOld.this.startdate.getTime()+"", MainActivityOld.this.enddate.getTime()+"", list);
 			fetchAccelData(id, activityTypeForSensor);
 		}
 		catch (JSONException localIOException)
@@ -1013,7 +1013,7 @@ public class MainActivity extends Activity  implements SensorEventListener, List
 			pointBufferFiller.append(df3.format(sensorX) + COMMA + df3.format(sensorY) + COMMA + df3.format(sensorZ) + COMMA);
 
 			if(isStartFirstTimeStamp) {
-				MainActivity.this.startdate = Calendar.getInstance().getTime();
+				MainActivityOld.this.startdate = Calendar.getInstance().getTime();
 				AppLog.e("isStartFirstTimeStamp");
 				// start reading from 1st second so leave the 0th reading. 
 				resetSensorDataFiller();
